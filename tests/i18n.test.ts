@@ -18,5 +18,7 @@ describe("i18n routing", () => {
     expect(keys(ka.Metadata)).toEqual(keys(en.Metadata));
     expect(keys(ka.Cart)).toEqual(keys(en.Cart));
     expect(keys(ka.Cart.errors)).toEqual(keys(en.Cart.errors));
+    expect(keys(ka.Admin)).toEqual(keys(en.Admin));
+    expect(keys(ka.Admin.shipping)).toEqual(keys(en.Admin.shipping));
   });
 });

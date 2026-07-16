@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   pgEnum,
@@ -11,7 +12,7 @@ import {
 
 import { users } from "./auth";
 import { products } from "./catalog";
-import { region } from "./common";
+import { currency, region } from "./common";
 
 /**
  * Cart lifecycle. `active` is a cart still being shopped; `converted` is one an
@@ -114,3 +115,66 @@ export type Cart = typeof carts.$inferSelect;
 export type NewCart = typeof carts.$inferInsert;
 export type CartItem = typeof cartItems.$inferSelect;
 export type NewCartItem = typeof cartItems.$inferInsert;
+
+/**
+ * Shipping destinations. A zone is matched by ISO-3166 alpha-2 country code;
+ * the zone flagged `isFallback` catches everything unlisted, so an order to a
+ * country nobody thought to configure still gets a price instead of failing.
+ *
+ * `isGeorgia` marks the domestic zone (GEL/iPay) as distinct from the
+ * international ones (USD/Stripe) — the region split the whole shop is built on.
+ */
+export const shippingZones = pgTable("shipping_zone", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  countries: text("countries").array().notNull().default([]),
+  isGeorgia: boolean("is_georgia").notNull().default(false),
+  isFallback: boolean("is_fallback").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+/**
+ * Flat rate per zone per currency, in minor units like every other amount.
+ * `freeThreshold` is the order subtotal at or above which shipping is free;
+ * null means never free.
+ */
+export const shippingRates = pgTable(
+  "shipping_rate",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    zoneId: text("zone_id")
+      .notNull()
+      .references(() => shippingZones.id, { onDelete: "cascade" }),
+    currency: currency("currency").notNull(),
+    rate: integer("rate").notNull(),
+    freeThreshold: integer("free_threshold"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    // One rate per zone per currency — a second would make the quote ambiguous.
+    uniqueIndex("shipping_rate_zone_currency_uq").on(t.zoneId, t.currency),
+  ],
+);
+
+export const shippingZonesRelations = relations(shippingZones, ({ many }) => ({
+  rates: many(shippingRates),
+}));
+
+export const shippingRatesRelations = relations(shippingRates, ({ one }) => ({
+  zone: one(shippingZones, {
+    fields: [shippingRates.zoneId],
+    references: [shippingZones.id],
+  }),
+}));
+
+export type ShippingZone = typeof shippingZones.$inferSelect;
+export type NewShippingZone = typeof shippingZones.$inferInsert;
+export type ShippingRate = typeof shippingRates.$inferSelect;
+export type NewShippingRate = typeof shippingRates.$inferInsert;

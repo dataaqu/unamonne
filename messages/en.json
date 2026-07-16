@@ -87,6 +87,28 @@
       "editProduct": "Edit product",
       "noItems": "Nothing yet.",
       "required": "Required"
+    },
+    "shippingNav": "Shipping",
+    "shipping": {
+      "title": "Shipping zones",
+      "newZone": "New zone",
+      "editZone": "Edit zone",
+      "countries": "Countries",
+      "countriesHint": "GE, AM, TR",
+      "countriesHelp": "Two-letter country codes, comma separated. Leave blank for a catch-all zone.",
+      "anyCountry": "Any country",
+      "rates": "Rates",
+      "rate": "Rate",
+      "rateIn": "Rate in {currency}",
+      "rateBlankHint": "Blank = not shipped",
+      "freeThreshold": "Free over",
+      "freeThresholdHint": "Blank = never free",
+      "freeOver": "(free over {amount})",
+      "minorUnitsHelp": "Amounts in minor units — tetri for GEL, cents for USD.",
+      "isGeorgia": "Domestic (Georgia)",
+      "isFallback": "Fallback zone",
+      "noRates": "No rates set",
+      "noFallbackWarning": "No fallback zone is set. Orders to a country that no zone lists will have no shipping price."
     }
   },
   "Cart": {
