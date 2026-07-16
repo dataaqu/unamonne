@@ -1,0 +1,92 @@
+{
+  "Metadata": {
+    "title": "Vintage",
+    "description": "ვინტაჟური ნივთების მაღაზია — ხელნაკეთი და შერჩეული ნაწარმი."
+  },
+  "HomePage": {
+    "title": "მოგესალმებით Vintage-ში",
+    "tagline": "შერჩეული ვინტაჟური ნივთები, გამოგზავნილი საქართველოდან.",
+    "browse": "კატალოგის დათვალიერება",
+    "featured": "რჩეული პროდუქტები"
+  },
+  "Shop": {
+    "title": "მაღაზია",
+    "categories": "კატეგორიები",
+    "allProducts": "ყველა პროდუქტი",
+    "noProducts": "პროდუქტები ჯერ არ არის.",
+    "outOfStock": "არ არის მარაგში",
+    "inStock": "მარაგშია"
+  },
+  "LanguageSwitcher": {
+    "label": "ენა",
+    "ka": "ქართული",
+    "en": "English"
+  },
+  "Auth": {
+    "loginTitle": "შესვლა",
+    "loginSubtitle": "შედით თქვენს ანგარიშში.",
+    "registerTitle": "ანგარიშის შექმნა",
+    "registerSubtitle": "შექმენით ახალი ანგარიში.",
+    "name": "სახელი",
+    "email": "ელფოსტა",
+    "password": "პაროლი",
+    "login": "შესვლა",
+    "register": "რეგისტრაცია",
+    "logout": "გასვლა",
+    "submitting": "მოიცადეთ…",
+    "noAccount": "არ გაქვთ ანგარიში?",
+    "haveAccount": "უკვე გაქვთ ანგარიში?",
+    "errors": {
+      "EMAIL_REQUIRED": "შეიყვანეთ ელფოსტა.",
+      "EMAIL_INVALID": "ელფოსტა არასწორია.",
+      "PASSWORD_REQUIRED": "შეიყვანეთ პაროლი.",
+      "PASSWORD_TOO_SHORT": "პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო.",
+      "PASSWORD_TOO_LONG": "პაროლი ძალიან გრძელია.",
+      "EMAIL_TAKEN": "ეს ელფოსტა უკვე დარეგისტრირებულია.",
+      "INVALID_CREDENTIALS": "ელფოსტა ან პაროლი არასწორია.",
+      "UNKNOWN": "დაფიქსირდა შეცდომა. სცადეთ თავიდან."
+    }
+  },
+  "Admin": {
+    "title": "ადმინი",
+    "dashboard": "მთავარი",
+    "categories": "კატეგორიები",
+    "products": "პროდუქტები",
+    "orders": "შეკვეთები",
+    "signedInAs": "შესული ხართ როგორც",
+    "stat": {
+      "products": "პროდუქტები",
+      "categories": "კატეგორიები"
+    },
+    "form": {
+      "name": "სახელი",
+      "slug": "Slug (URL)",
+      "slugHint": "ცარიელი დატოვე ავტომატურად",
+      "description": "აღწერა",
+      "visible": "ხილული",
+      "hidden": "დამალული",
+      "featured": "რჩეული",
+      "outOfStock": "არ არის მარაგში",
+      "sortOrder": "რიგი",
+      "priceGel": "ფასი (₾ თეთრებში)",
+      "priceUsd": "ფასი ($ ცენტებში)",
+      "stock": "მარაგი",
+      "category": "კატეგორია",
+      "images": "სურათები",
+      "save": "შენახვა",
+      "saving": "ინახება…",
+      "cancel": "გაუქმება",
+      "edit": "რედაქტირება",
+      "delete": "წაშლა",
+      "actions": "მოქმედებები",
+      "sectionKa": "ქართული",
+      "sectionEn": "English",
+      "newCategory": "ახალი კატეგორია",
+      "editCategory": "კატეგორიის რედაქტირება",
+      "newProduct": "ახალი პროდუქტი",
+      "editProduct": "პროდუქტის რედაქტირება",
+      "noItems": "ჯერ არაფერია.",
+      "required": "აუცილებელია"
+    }
+  }
+}

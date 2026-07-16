@@ -1,0 +1,92 @@
+{
+  "Metadata": {
+    "title": "Vintage",
+    "description": "A vintage goods store — handmade and curated pieces."
+  },
+  "HomePage": {
+    "title": "Welcome to Vintage",
+    "tagline": "Curated vintage pieces, shipped from Georgia.",
+    "browse": "Browse the catalog",
+    "featured": "Featured products"
+  },
+  "Shop": {
+    "title": "Shop",
+    "categories": "Categories",
+    "allProducts": "All products",
+    "noProducts": "No products yet.",
+    "outOfStock": "Out of stock",
+    "inStock": "In stock"
+  },
+  "LanguageSwitcher": {
+    "label": "Language",
+    "ka": "ქართული",
+    "en": "English"
+  },
+  "Auth": {
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Sign in to your account.",
+    "registerTitle": "Create account",
+    "registerSubtitle": "Create a new account.",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
+    "submitting": "Please wait…",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "errors": {
+      "EMAIL_REQUIRED": "Enter your email.",
+      "EMAIL_INVALID": "That email is invalid.",
+      "PASSWORD_REQUIRED": "Enter your password.",
+      "PASSWORD_TOO_SHORT": "Password must be at least 8 characters.",
+      "PASSWORD_TOO_LONG": "Password is too long.",
+      "EMAIL_TAKEN": "That email is already registered.",
+      "INVALID_CREDENTIALS": "Email or password is incorrect.",
+      "UNKNOWN": "Something went wrong. Please try again."
+    }
+  },
+  "Admin": {
+    "title": "Admin",
+    "dashboard": "Dashboard",
+    "categories": "Categories",
+    "products": "Products",
+    "orders": "Orders",
+    "signedInAs": "Signed in as",
+    "stat": {
+      "products": "Products",
+      "categories": "Categories"
+    },
+    "form": {
+      "name": "Name",
+      "slug": "Slug (URL)",
+      "slugHint": "Leave empty to auto-generate",
+      "description": "Description",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "featured": "Featured",
+      "outOfStock": "Out of stock",
+      "sortOrder": "Order",
+      "priceGel": "Price (₾ in tetri)",
+      "priceUsd": "Price ($ in cents)",
+      "stock": "Stock",
+      "category": "Category",
+      "images": "Images",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "actions": "Actions",
+      "sectionKa": "ქართული",
+      "sectionEn": "English",
+      "newCategory": "New category",
+      "editCategory": "Edit category",
+      "newProduct": "New product",
+      "editProduct": "Edit product",
+      "noItems": "Nothing yet.",
+      "required": "Required"
+    }
+  }
+}
