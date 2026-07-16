@@ -1,8 +1,10 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
+import { cookies } from "next/headers";
 import Credentials from "next-auth/providers/credentials";
 
+import { CART_COOKIE, claimGuestCart } from "@/lib/cart";
 import { db } from "@/lib/db";
 import {
   accounts,
@@ -68,6 +70,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  events: {
+    /**
+     * Carry an anonymous cart across sign-in: the guest cart is claimed for the
+     * user (or folded into one they already have), so items added before
+     * logging in are never silently lost. Failures here must not block sign-in.
+     */
+    async signIn({ user }) {
+      if (!user.id) return;
+      try {
+        const token = (await cookies()).get(CART_COOKIE)?.value;
+        if (token) await claimGuestCart(user.id, token);
+      } catch (error) {
+        console.error("[auth] failed to claim guest cart on sign-in", error);
+      }
+    },
+  },
   callbacks: {
     jwt({ token, user }) {
       if (user) {

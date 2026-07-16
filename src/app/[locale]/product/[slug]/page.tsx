@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { AddToCartButton } from "@/components/shop/add-to-cart-button";
 import type { Locale } from "@/i18n/routing";
 import { pickTranslation } from "@/lib/catalog";
 import { formatMoney } from "@/lib/money";
@@ -53,6 +54,8 @@ export default async function ProductPage({
         >
           {soldOut ? t("outOfStock") : t("inStock")}
         </p>
+
+        <AddToCartButton productId={product.id} disabled={soldOut} />
 
         {tr?.description ? (
           <p className="whitespace-pre-line text-muted-foreground">

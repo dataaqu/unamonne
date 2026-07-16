@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { RegionSwitcher } from "@/components/region-switcher";
+import { CartLink } from "@/components/shop/cart-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
@@ -24,6 +25,7 @@ export async function SiteHeader() {
         <div className="flex items-center gap-2 sm:gap-3">
           <RegionSwitcher />
           <LocaleSwitcher />
+          <CartLink />
 
           {session?.user ? (
             <div className="flex items-center gap-1">

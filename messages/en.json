@@ -88,5 +88,26 @@
       "noItems": "Nothing yet.",
       "required": "Required"
     }
+  },
+  "Cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "continueShopping": "Continue shopping",
+    "addToCart": "Add to cart",
+    "adding": "Adding…",
+    "added": "Added to your cart.",
+    "remove": "Remove",
+    "increase": "Increase quantity",
+    "decrease": "Decrease quantity",
+    "subtotal": "Subtotal",
+    "shippingAtCheckout": "Shipping calculated at checkout.",
+    "checkout": "Checkout",
+    "itemCount": "Cart, {count} items",
+    "errors": {
+      "INVALID": "That didn't look right. Please try again.",
+      "NOT_FOUND": "This product is no longer available.",
+      "OUT_OF_STOCK": "This product is out of stock.",
+      "UNKNOWN": "Something went wrong. Please try again."
+    }
   }
 }

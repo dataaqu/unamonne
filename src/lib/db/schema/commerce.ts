@@ -32,9 +32,10 @@ export const cartStatus = pgEnum("cart_status", [
  * so `userId` is nullable and `token` is always present. `email` is captured at
  * checkout — for guests it is the only way to reach them for T4.4.
  *
- * `region` locks the currency for the cart's lifetime: a cart started in GEL
- * stays GEL even if the visitor flips the region switcher, so totals can never
- * silently change under an in-flight checkout.
+ * `region` records where the cart started, and decides the payment rail at
+ * checkout (GE → iPay/GEL, INTL → Stripe/USD). It does not constrain display:
+ * because every line snapshots both currencies, the cart renders in whatever
+ * region is active, and a price edit still can't move an existing line.
  */
 export const carts = pgTable(
   "cart",

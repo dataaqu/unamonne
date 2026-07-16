@@ -1,9 +1,24 @@
-import { Pool } from "@neondatabase/serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 
 import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL;
+
+/**
+ * Local-only escape hatch. The neon-serverless driver speaks WebSocket, so it
+ * cannot talk to a plain Postgres directly; pointing NEON_WS_PROXY at a
+ * `neondatabase/wsproxy` container lets the app run against a throwaway local
+ * database (see docs/db-setup.md). Unset in every deployed environment, where
+ * Neon terminates the WebSocket itself.
+ */
+if (process.env.NEON_WS_PROXY) {
+  const proxy = process.env.NEON_WS_PROXY;
+  neonConfig.wsProxy = () => proxy;
+  neonConfig.useSecureWebSocket = false;
+  neonConfig.pipelineTLS = false;
+  neonConfig.pipelineConnect = false;
+}
 
 if (!connectionString) {
   // Intentionally not throwing here: route modules import `db` at build time,
