@@ -33,6 +33,24 @@ export function isAbandonmentCandidate(
   );
 }
 
+/**
+ * Bearer-token guard for the Vercel Cron route. Vercel sends
+ * `Authorization: Bearer <CRON_SECRET>` when the env var is set. Fails closed:
+ * no configured secret means no access, so the endpoint is never left open.
+ */
+export function isAuthorizedCron(
+  authHeader: string | null,
+  secret: string | undefined,
+): boolean {
+  if (!secret) return false;
+  return authHeader === `Bearer ${secret}`;
+}
+
+/** A short, human-friendly one-time offer code, e.g. COMEBACK-7F3A. */
+export function makeOfferCode(rand: () => string = () => crypto.randomUUID()): string {
+  return `COMEBACK-${rand().replace(/-/g, "").slice(0, 4).toUpperCase()}`;
+}
+
 export type AbandonmentCandidate = {
   id: string;
   email: string | null;
@@ -68,4 +86,62 @@ export function findAbandonmentCandidates(
       ),
     )
     .orderBy(carts.updatedAt);
+}
+
+/**
+ * Sends one recovery email. Injected so the recovery loop is testable and so
+ * T4.4 can swap the log-only default for a Resend-backed sender without
+ * touching the cron.
+ */
+export type RecoveryMailer = (input: {
+  cartId: string;
+  email: string | null;
+  offerCode: string;
+}) => Promise<void>;
+
+/** Default mailer until Resend is wired in T4.4: records intent to the log only. */
+export const logRecoveryMailer: RecoveryMailer = async ({
+  cartId,
+  email,
+  offerCode,
+}) => {
+  console.info(
+    `[abandoned-cart] would email ${email ?? "(no address on cart)"} for cart ${cartId} with offer ${offerCode}`,
+  );
+};
+
+/**
+ * Recover every currently-abandoned cart: mark it `abandoned`, log the send
+ * (with a fresh offer code), then dispatch the email. Idempotent across runs —
+ * the finder excludes carts already flipped or already emailed — and per run
+ * each cart is handled once. A failure on one cart is logged and skipped so it
+ * never blocks the rest. Returns how many were recovered.
+ */
+export async function recoverAbandonedCarts(
+  now: Date,
+  send: RecoveryMailer,
+  idleHours = DEFAULT_IDLE_HOURS,
+): Promise<{ recovered: number }> {
+  const candidates = await findAbandonmentCandidates(now, idleHours);
+  let recovered = 0;
+
+  for (const cart of candidates) {
+    const offerCode = makeOfferCode();
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .update(carts)
+          .set({ status: "abandoned", updatedAt: new Date() })
+          .where(eq(carts.id, cart.id));
+        await tx.insert(abandonedCartEmails).values({ cartId: cart.id, offerCode });
+      });
+
+      await send({ cartId: cart.id, email: cart.email, offerCode });
+      recovered += 1;
+    } catch (error) {
+      console.error("[abandoned-cart] failed to recover cart", cart.id, error);
+    }
+  }
+
+  return { recovered };
 }
