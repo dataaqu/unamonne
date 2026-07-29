@@ -1,10 +1,17 @@
+import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { ProductCard } from "@/components/shop/product-card";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { getRegion } from "@/lib/region";
+import { localizedAlternates } from "@/lib/seo/metadata";
 import { getVisibleProducts } from "@/lib/shop";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return { alternates: localizedAlternates(locale, "") };
+}
 
 /**
  * Featured products, degrading gracefully: if the database isn't reachable yet,

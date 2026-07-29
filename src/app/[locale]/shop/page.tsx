@@ -1,10 +1,23 @@
+import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { ProductCard } from "@/components/shop/product-card";
 import { Link } from "@/i18n/navigation";
 import { pickTranslation } from "@/lib/catalog";
 import { getRegion } from "@/lib/region";
+import { localizedAlternates } from "@/lib/seo/metadata";
 import { getVisibleCategories, getVisibleProducts } from "@/lib/shop";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations("Shop"),
+  ]);
+  return {
+    title: t("title"),
+    alternates: localizedAlternates(locale, "/shop"),
+  };
+}
 
 export default async function ShopPage() {
   const [locale, region, t] = await Promise.all([

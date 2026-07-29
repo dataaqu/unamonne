@@ -8,7 +8,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { pickTranslation } from "@/lib/catalog";
 import { formatMoney } from "@/lib/money";
 import { getRegion } from "@/lib/region";
-import { productJsonLd } from "@/lib/seo/jsonld";
+import { breadcrumbJsonLd, productJsonLd } from "@/lib/seo/jsonld";
 import { localizedUrl } from "@/lib/seo/metadata";
 import { getProductBySlug } from "@/lib/shop";
 
@@ -81,6 +81,16 @@ export default async function ProductPage({
           inStock: !soldOut,
           url: localizedUrl(locale, `/product/${tr?.slug ?? slug}`),
         })}
+      />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Vintage", url: localizedUrl(locale, "") },
+          { name: t("title"), url: localizedUrl(locale, "/shop") },
+          {
+            name: tr?.name ?? "",
+            url: localizedUrl(locale, `/product/${tr?.slug ?? slug}`),
+          },
+        ])}
       />
       <div className="grid grid-cols-2 gap-3">
         {images.map((image) => (

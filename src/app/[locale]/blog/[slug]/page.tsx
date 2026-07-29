@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { findPublishedPostBySlug, pickTranslation } from "@/lib/blog";
-import { articleJsonLd } from "@/lib/seo/jsonld";
+import { articleJsonLd, breadcrumbJsonLd } from "@/lib/seo/jsonld";
 import { localizedUrl } from "@/lib/seo/metadata";
 
 function resolveLocale(locale: string): "ka" | "en" {
@@ -119,6 +119,13 @@ export default async function BlogPostPage({
           datePublished: post.publishedAt?.toISOString(),
           url,
         })}
+      />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Vintage", url: localizedUrl(activeLocale, "") },
+          { name: t("title"), url: localizedUrl(activeLocale, "/blog") },
+          { name: tr?.title ?? "", url },
+        ])}
       />
       <Link
         href="/blog"
