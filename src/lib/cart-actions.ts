@@ -9,23 +9,49 @@ import { auth } from "@/lib/auth";
 import {
   CART_COOKIE,
   CART_COOKIE_OPTIONS,
+  CART_LINE_KEY,
+  cartTotals,
   claimGuestCart,
   findActiveCartByToken,
   findActiveCartByUser,
 } from "@/lib/cart";
+import { MAX_ENGRAVING, MAX_QUANTITY } from "@/lib/cart-limits";
 import { db } from "@/lib/db";
-import { cartItems, carts, products } from "@/lib/db/schema";
+import { cartItems, carts } from "@/lib/db/schema";
+import {
+  applyDiscount,
+  findDiscountByCode,
+  normalizeCode,
+} from "@/lib/discounts";
 import { getRegion } from "@/lib/region";
+import { availableStock, getBuyableProduct } from "@/lib/shop";
 
 export type CartActionState = {
   ok: boolean;
-  error?: "INVALID" | "NOT_FOUND" | "OUT_OF_STOCK" | "UNKNOWN";
+  error?:
+    | "INVALID"
+    | "NOT_FOUND"
+    | "OUT_OF_STOCK"
+    | "VARIANT_REQUIRED"
+    | "UNKNOWN";
 };
 
-const MAX_QUANTITY = 99;
+export type DiscountActionState = {
+  ok: boolean;
+  code?: string;
+  error?:
+    | "INVALID"
+    | "NOT_FOUND"
+    | "EXPIRED"
+    | "USED_UP"
+    | "MIN_SUBTOTAL"
+    | "UNKNOWN";
+};
 
 const addSchema = z.object({
   productId: z.string().min(1),
+  variantId: z.string().min(1).optional(),
+  engraving: z.string().trim().max(MAX_ENGRAVING).optional(),
   quantity: z.coerce.number().int().min(1).max(MAX_QUANTITY).default(1),
 });
 
@@ -102,49 +128,66 @@ function touchCart(cartId: string) {
 }
 
 /**
- * Add a product to the cart. Only the product id and quantity come from the
- * client — prices are read from the catalog server-side and snapshotted onto
- * the line, so a forged form cannot dictate what something costs.
+ * Add a configuration to the bag. Only ids, a quantity and the engraving text
+ * come from the client — prices are read from the catalog server-side and
+ * snapshotted onto the line, so a forged form cannot dictate what something
+ * costs — and the variant is checked to belong to the product being added.
  */
 export async function addToCartAction(
   _prev: CartActionState | undefined,
   formData: FormData,
 ): Promise<CartActionState> {
+  const rawVariant = formData.get("variantId");
+  const rawEngraving = formData.get("engraving");
+
   const parsed = addSchema.safeParse({
     productId: formData.get("productId"),
+    variantId: rawVariant ? String(rawVariant) : undefined,
+    engraving: rawEngraving ? String(rawEngraving) : undefined,
     quantity: formData.get("quantity") ?? 1,
   });
   if (!parsed.success) return { ok: false, error: "INVALID" };
 
   try {
-    const product = await db.query.products.findFirst({
-      where: and(
-        eq(products.id, parsed.data.productId),
-        eq(products.isHidden, false),
-      ),
-    });
+    const product = await getBuyableProduct(parsed.data.productId);
     if (!product) return { ok: false, error: "NOT_FOUND" };
-    if (product.isOutOfStock || product.stock <= 0) {
-      return { ok: false, error: "OUT_OF_STOCK" };
+
+    // A piece with sizes cannot be bought "in general".
+    if (product.variants.length > 0 && !parsed.data.variantId) {
+      return { ok: false, error: "VARIANT_REQUIRED" };
+    }
+    if (
+      parsed.data.variantId &&
+      !product.variants.some((v) => v.id === parsed.data.variantId)
+    ) {
+      return { ok: false, error: "NOT_FOUND" };
     }
 
-    const cart = await getOrCreateCart();
+    const stock = availableStock(product, parsed.data.variantId);
+    if (stock <= 0) return { ok: false, error: "OUT_OF_STOCK" };
 
-    // Re-adding a product bumps its quantity (unique on cart+product), capped
-    // at what is actually in stock.
+    const cart = await getOrCreateCart();
+    const engraving = parsed.data.engraving?.length
+      ? parsed.data.engraving
+      : null;
+
+    // Re-adding the same configuration bumps its quantity, capped at what is
+    // actually available.
     await db
       .insert(cartItems)
       .values({
         cartId: cart.id,
         productId: product.id,
-        quantity: Math.min(parsed.data.quantity, product.stock),
+        variantId: parsed.data.variantId ?? null,
+        engraving,
+        quantity: Math.min(parsed.data.quantity, stock),
         unitPriceGel: product.priceGel,
         unitPriceUsd: product.priceUsd,
       })
       .onConflictDoUpdate({
-        target: [cartItems.cartId, cartItems.productId],
+        target: [...CART_LINE_KEY],
         set: {
-          quantity: sql`LEAST(${cartItems.quantity} + ${parsed.data.quantity}, ${product.stock})`,
+          quantity: sql`LEAST(${cartItems.quantity} + ${parsed.data.quantity}, ${stock})`,
           updatedAt: new Date(),
         },
       });
@@ -183,14 +226,17 @@ export async function setQuantityAction(
     } else {
       const line = await db.query.cartItems.findFirst({
         where: owned,
-        with: { product: true },
+        with: { product: { with: { variants: true } } },
       });
       if (!line) return { ok: false, error: "NOT_FOUND" };
+
+      const stock = availableStock(line.product, line.variantId);
+      if (stock <= 0) return { ok: false, error: "OUT_OF_STOCK" };
 
       await db
         .update(cartItems)
         .set({
-          quantity: Math.min(parsed.data.quantity, line.product.stock),
+          quantity: Math.min(parsed.data.quantity, stock),
           updatedAt: new Date(),
         })
         .where(owned);
@@ -229,4 +275,77 @@ export async function removeItemAction(
 
   refresh();
   return { ok: true };
+}
+
+/** "This is a gift — leave the price off the slip." */
+export async function setGiftAction(formData: FormData): Promise<void> {
+  const isGift = formData.get("isGift") === "on";
+  const cart = await getOwnCart();
+  if (!cart) return;
+
+  await db
+    .update(carts)
+    .set({ isGift, updatedAt: new Date() })
+    .where(eq(carts.id, cart.id));
+
+  refresh();
+}
+
+/**
+ * Apply an offer code. The code is validated against the cart's own subtotal in
+ * the active region before it is stored, so the cart never displays a discount
+ * it would not actually get — and it is re-validated again at checkout.
+ */
+export async function applyDiscountAction(
+  _prev: DiscountActionState | undefined,
+  formData: FormData,
+): Promise<DiscountActionState> {
+  const raw = String(formData.get("code") ?? "").trim();
+  if (!raw) return { ok: false, error: "INVALID" };
+
+  try {
+    const [session, cookieStore, region] = await Promise.all([
+      auth(),
+      cookies(),
+      getRegion(),
+    ]);
+    const userId = session?.user?.id;
+    const token = cookieStore.get(CART_COOKIE)?.value;
+
+    const cart = userId
+      ? await findActiveCartByUser(userId)
+      : token
+        ? await findActiveCartByToken(token)
+        : null;
+    if (!cart) return { ok: false, error: "NOT_FOUND" };
+
+    const discount = await findDiscountByCode(raw);
+    if (!discount) return { ok: false, error: "NOT_FOUND" };
+
+    const { subtotal } = cartTotals(cart, region);
+    const result = applyDiscount(discount, subtotal, region);
+    if (!result.ok) return { ok: false, error: result.reason };
+
+    await db
+      .update(carts)
+      .set({ discountCode: normalizeCode(raw), updatedAt: new Date() })
+      .where(eq(carts.id, cart.id));
+
+    refresh();
+    return { ok: true, code: result.code };
+  } catch {
+    return { ok: false, error: "UNKNOWN" };
+  }
+}
+
+export async function removeDiscountAction(): Promise<void> {
+  const cart = await getOwnCart();
+  if (!cart) return;
+
+  await db
+    .update(carts)
+    .set({ discountCode: null, updatedAt: new Date() })
+    .where(eq(carts.id, cart.id));
+
+  refresh();
 }

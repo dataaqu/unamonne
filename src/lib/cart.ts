@@ -20,7 +20,8 @@ export const CART_COOKIE_OPTIONS = {
 const withItems = {
   items: {
     with: {
-      product: { with: { translations: true, images: true } },
+      product: { with: { translations: true, images: true, variants: true } },
+      variant: true,
     },
   },
 } as const;
@@ -29,6 +30,18 @@ export type CartWithItems = NonNullable<
   Awaited<ReturnType<typeof findActiveCartByUser>>
 >;
 export type CartLine = CartWithItems["items"][number];
+
+/**
+ * What makes two bag lines the same line. Size 16 and size 17 of one ring — or
+ * the same ring engraved twice with different names — are different lines;
+ * re-adding an identical configuration bumps the quantity instead.
+ */
+export const CART_LINE_KEY = [
+  cartItems.cartId,
+  cartItems.productId,
+  cartItems.variantId,
+  cartItems.engraving,
+] as const;
 
 /** The signed-in shopper's open cart, if any. */
 export function findActiveCartByUser(userId: string) {
@@ -87,12 +100,14 @@ export async function claimGuestCart(
         .values({
           cartId: existing.id,
           productId: line.productId,
+          variantId: line.variantId,
+          engraving: line.engraving,
           quantity: line.quantity,
           unitPriceGel: line.unitPriceGel,
           unitPriceUsd: line.unitPriceUsd,
         })
         .onConflictDoUpdate({
-          target: [cartItems.cartId, cartItems.productId],
+          target: [...CART_LINE_KEY],
           set: {
             quantity: sql`${cartItems.quantity} + ${line.quantity}`,
             updatedAt: new Date(),
@@ -109,8 +124,18 @@ export async function claimGuestCart(
   return existing.id;
 }
 
-/** Unit price of a line in the active region, in minor units. */
-export function lineUnitPrice(line: CartLine, region: Region): number {
+/**
+ * Unit price of a line in the active region, in minor units. Typed
+ * structurally (not as a full `CartLine`) so callers that loaded a lighter
+ * shape — the abandoned-cart sweep, an email template — can price it too.
+ */
+export type PricedLine = {
+  quantity: number;
+  unitPriceGel: number;
+  unitPriceUsd: number;
+};
+
+export function lineUnitPrice(line: PricedLine, region: Region): number {
   return region === "GE" ? line.unitPriceGel : line.unitPriceUsd;
 }
 
@@ -120,7 +145,7 @@ export function lineUnitPrice(line: CartLine, region: Region): number {
  * both currencies are snapshotted, so switching region is still consistent.
  */
 export function cartTotals(
-  cart: { items: CartLine[] } | null,
+  cart: { items: PricedLine[] } | null,
   region: Region,
 ): { count: number; subtotal: number } {
   if (!cart) return { count: 0, subtotal: 0 };
@@ -132,4 +157,19 @@ export function cartTotals(
     }),
     { count: 0, subtotal: 0 },
   );
+}
+
+/**
+ * The sub-line under a bag row: the chosen size and the engraving, e.g.
+ * `Size 16 · “ნინო”`. Returns null when a piece has neither, so the row simply
+ * omits the line rather than showing an empty one.
+ */
+export function cartLineVariantLabel(line: {
+  variant?: { label: string } | null;
+  engraving?: string | null;
+}): string | null {
+  const parts: string[] = [];
+  if (line.variant?.label) parts.push(line.variant.label);
+  if (line.engraving) parts.push(`“${line.engraving}”`);
+  return parts.length > 0 ? parts.join(" · ") : null;
 }

@@ -4,11 +4,121 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ------------------------------------------------------------------ *
+ * UNAMONNE — design tokens
+ * Editorial jewellery house. Helvetica, cocoa #433131, cream #f8e9be.
+ * Square corners, hairline rules, photography does the talking.
+ * ------------------------------------------------------------------ */
+@theme {
+  /* ink — text & surfaces */
+  --color-ink-50: #faf9f8;
+  --color-ink-100: #f6f3f3;
+  --color-ink-200: #ece7e5;
+  --color-ink-300: #d9d1ce;
+  --color-ink-400: #b3a7a3;
+  --color-ink-500: #8a7b78;
+  --color-ink-600: #6d5d5a;
+  --color-ink-700: #584746;
+  --color-ink-800: #4b3937;
+  --color-ink-900: #433131;
+  --color-ink-950: #2a1d1d;
+
+  /* brand — gold */
+  --color-brand-50: #fdfaf1;
+  --color-brand-100: #f8e9be;
+  --color-brand-200: #f2dda1;
+  --color-brand-300: #e9cb7c;
+  --color-brand-400: #dcb455;
+  --color-brand-500: #c99b36;
+  --color-brand-600: #ac7f28;
+  --color-brand-700: #8a6321;
+  --color-brand-800: #6b4c1e;
+  --color-brand-900: #4e3818;
+  --color-brand-950: #2e2010;
+
+  /* accent — sand (image tiles, dividers) */
+  --color-accent-50: #faf8f5;
+  --color-accent-100: #f2ede6;
+  --color-accent-200: #e7dfd4;
+  --color-accent-300: #d8ccbb;
+  --color-accent-400: #c2ae97;
+  --color-accent-500: #a98e73;
+  --color-accent-600: #8e735b;
+  --color-accent-700: #725c4a;
+  --color-accent-800: #5a483b;
+  --color-accent-900: #43362d;
+  --color-accent-950: #2a211c;
+
+  /* status */
+  --color-success-50: #f4f7f2;
+  --color-success-100: #e5ecdf;
+  --color-success-200: #cbd9c1;
+  --color-success-300: #a8bf9a;
+  --color-success-400: #82a071;
+  --color-success-500: #5f8250;
+  --color-success-600: #4a683e;
+  --color-success-700: #3c5333;
+  --color-success-800: #31432b;
+  --color-success-900: #293725;
+  --color-success-950: #141d12;
+
+  --color-warning-50: #fdf8ed;
+  --color-warning-100: #f9eccd;
+  --color-warning-200: #f2d698;
+  --color-warning-300: #e9bb63;
+  --color-warning-400: #e0a13e;
+  --color-warning-500: #c98327;
+  --color-warning-600: #a76620;
+  --color-warning-700: #854e1e;
+  --color-warning-800: #6c3f1e;
+  --color-warning-900: #5a351c;
+  --color-warning-950: #331b0d;
+
+  --color-danger-50: #fdf5f3;
+  --color-danger-100: #fbe6e1;
+  --color-danger-200: #f6cdc4;
+  --color-danger-300: #eda99a;
+  --color-danger-400: #e07a64;
+  --color-danger-500: #c9553d;
+  --color-danger-600: #a83f2c;
+  --color-danger-700: #8b3325;
+  --color-danger-800: #722c22;
+  --color-danger-900: #5f2820;
+  --color-danger-950: #33120e;
+
+  --color-info-50: #f3f6f8;
+  --color-info-100: #e3ebef;
+  --color-info-200: #c8d8e0;
+  --color-info-300: #a2bccb;
+  --color-info-400: #759bb0;
+  --color-info-500: #557d95;
+  --color-info-600: #43647c;
+  --color-info-700: #385265;
+  --color-info-800: #324655;
+  --color-info-900: #2d3d49;
+  --color-info-950: #19232c;
+
+  /* Helvetica for Latin, Noto Sans Georgian for ქართული. */
+  --font-sans:
+    "Helvetica Neue", Helvetica, var(--font-noto-georgian), Arial, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: var(--font-plex-mono), Menlo, monospace;
+
+  /* Corners are square. Only chips and dots are round. */
+  --radius-pill: 9999px;
+
+  --shadow-xs: 0 1px 2px rgb(42 29 29 / 0.06);
+  --shadow-pop: 0 8px 24px rgb(42 29 29 / 0.1);
+  --shadow-float: 0 24px 60px rgb(42 29 29 / 0.18);
+}
+
+/*
+ * shadcn/base-ui tokens, retuned onto the Unamonne palette so the admin panel
+ * (which still uses those primitives) stays on-brand instead of neutral grey.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -28,7 +138,6 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -49,72 +158,39 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #f6f3f3;
+  --foreground: #433131;
+  --card: #ffffff;
+  --card-foreground: #433131;
+  --popover: #ffffff;
+  --popover-foreground: #433131;
+  --primary: #433131;
+  --primary-foreground: #faf9f8;
+  --secondary: #ece7e5;
+  --secondary-foreground: #433131;
+  --muted: #ece7e5;
+  --muted-foreground: #8a7b78;
+  --accent: #f2ede6;
+  --accent-foreground: #433131;
+  --destructive: #c9553d;
+  --border: #ece7e5;
+  --input: #d9d1ce;
+  --ring: #b3a7a3;
+  --chart-1: #433131;
+  --chart-2: #8a7b78;
+  --chart-3: #c99b36;
+  --chart-4: #a98e73;
+  --chart-5: #557d95;
+  /* The house has square corners; keep the shadcn radius at a hairline. */
+  --radius: 0rem;
+  --sidebar: #faf9f8;
+  --sidebar-foreground: #433131;
+  --sidebar-primary: #433131;
+  --sidebar-primary-foreground: #faf9f8;
+  --sidebar-accent: #ece7e5;
+  --sidebar-accent-foreground: #433131;
+  --sidebar-border: #ece7e5;
+  --sidebar-ring: #b3a7a3;
 }
 
 @layer base {
@@ -122,9 +198,25 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-ink-100 text-ink-900 antialiased;
   }
   html {
     @apply font-sans;
+  }
+  /* Regular everywhere. No bold in the interface. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 400;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }

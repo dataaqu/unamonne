@@ -18,6 +18,9 @@ import {
 export type OrderDraftLine = {
   productId: string | null;
   nameSnapshot: string;
+  /** The chosen size / length, frozen alongside the name. */
+  variantLabel: string | null;
+  engraving: string | null;
   quantity: number;
   unitPriceGel: number;
   unitPriceUsd: number;
@@ -27,6 +30,8 @@ export type OrderDraftLine = {
 export type OrderDraftItem = {
   productId: string | null;
   nameSnapshot: string;
+  variantLabel: string | null;
+  engraving: string | null;
   quantity: number;
   /** Minor units, in the order currency. */
   unitPrice: number;
@@ -44,6 +49,8 @@ export type OrderDraft = {
   currency: CurrencyCode;
   items: OrderDraftItem[];
   subtotal: number;
+  /** Minor units taken off the subtotal by an offer code. Never negative. */
+  discountAmount: number;
   shippingCost: number;
   tax: number;
   total: number;
@@ -54,16 +61,21 @@ export type OrderDraft = {
  * from the region's currency snapshot — never re-read from the catalog — so the
  * shopper is charged exactly what they were quoted. Throws on an empty cart:
  * an order with no lines is never valid, and callers should have stopped sooner.
+ *
+ * A discount comes off the goods only: it is clamped to the subtotal, so an
+ * over-generous code can never pay for shipping or drive a total negative.
  */
 export function buildOrderDraft({
   lines,
   region,
   shippingCost,
+  discountAmount = 0,
   tax = 0,
 }: {
   lines: readonly OrderDraftLine[];
   region: Region;
   shippingCost: number;
+  discountAmount?: number;
   tax?: number;
 }): OrderDraft {
   if (lines.length === 0) {
@@ -77,6 +89,8 @@ export function buildOrderDraft({
     return {
       productId: line.productId,
       nameSnapshot: line.nameSnapshot,
+      variantLabel: line.variantLabel,
+      engraving: line.engraving,
       quantity: line.quantity,
       unitPrice,
       lineTotal: unitPrice * line.quantity,
@@ -84,15 +98,17 @@ export function buildOrderDraft({
   });
 
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const discount = Math.max(0, Math.min(discountAmount, subtotal));
 
   return {
     region,
     currency,
     items,
     subtotal,
+    discountAmount: discount,
     shippingCost,
     tax,
-    total: subtotal + shippingCost + tax,
+    total: subtotal - discount + shippingCost + tax,
   };
 }
 
@@ -111,6 +127,8 @@ export function orderLinesFromCart(
   return cart.items.map((line) => ({
     productId: line.productId,
     nameSnapshot: cartLineName(line, locale),
+    variantLabel: line.variant?.label ?? null,
+    engraving: line.engraving,
     quantity: line.quantity,
     unitPriceGel: line.unitPriceGel,
     unitPriceUsd: line.unitPriceUsd,
@@ -215,6 +233,8 @@ export async function createOrderFromCart({
   provider,
   shippingCost,
   address,
+  discount,
+  isGift = false,
   tax = 0,
 }: {
   cart: CartWithItems;
@@ -224,12 +244,15 @@ export async function createOrderFromCart({
   provider: "ipay" | "stripe";
   shippingCost: number;
   address: ShippingAddressInput;
+  discount?: { code: string; amount: number } | null;
+  isGift?: boolean;
   tax?: number;
 }): Promise<string> {
   const draft = buildOrderDraft({
     lines: orderLinesFromCart(cart, locale),
     region,
     shippingCost,
+    discountAmount: discount?.amount ?? 0,
     tax,
   });
 
@@ -243,9 +266,12 @@ export async function createOrderFromCart({
         region: draft.region,
         currency: draft.currency,
         subtotal: draft.subtotal,
+        discountCode: draft.discountAmount > 0 ? (discount?.code ?? null) : null,
+        discountAmount: draft.discountAmount,
         shippingCost: draft.shippingCost,
         tax: draft.tax,
         total: draft.total,
+        isGift,
         paymentProvider: provider,
         shipName: address.name,
         shipPhone: address.phone ?? null,
@@ -262,6 +288,8 @@ export async function createOrderFromCart({
         orderId: order.id,
         productId: item.productId,
         nameSnapshot: item.nameSnapshot,
+        variantLabel: item.variantLabel,
+        engraving: item.engraving,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         currency: draft.currency,

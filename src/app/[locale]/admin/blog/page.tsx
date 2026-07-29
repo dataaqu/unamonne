@@ -15,12 +15,23 @@ export default async function AdminBlogPage() {
   const posts = await findPostsForAdmin();
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
+    <main className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <Link href="/admin/blog/new" className={buttonVariants({ size: "sm" })}>
-          {t("newPost")}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/blog/tags"
+            className={buttonVariants({ variant: "ghost", size: "sm" })}
+          >
+            {t("tags")}
+          </Link>
+          <Link
+            href="/admin/blog/new"
+            className={buttonVariants({ size: "sm" })}
+          >
+            {t("newPost")}
+          </Link>
+        </div>
       </div>
 
       {posts.length === 0 ? (

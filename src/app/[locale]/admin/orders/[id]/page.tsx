@@ -28,7 +28,7 @@ export default async function AdminOrderDetailPage({
   });
 
   return (
-    <main className="flex flex-1 flex-col gap-8 p-8">
+    <main className="flex flex-1 flex-col gap-8">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tabular-nums">

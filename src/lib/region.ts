@@ -1,35 +1,24 @@
 import { cookies, headers } from "next/headers";
 
-/**
- * Region drives currency and (later) the available payment method:
- *   - GE   → GEL (₾), Bank of Georgia iPay
- *   - INTL → USD ($), Stripe
- *
- * Region is independent of language (locale): a visitor can browse in English
- * while paying in GEL, or vice-versa.
- */
-export type Region = "GE" | "INTL";
+import {
+  CURRENCY,
+  REGION_COOKIE,
+  isRegion,
+  regionFromCountry,
+  type Region,
+} from "@/lib/currency";
 
-export const REGION_COOKIE = "REGION";
-
-export const CURRENCY = {
-  GE: { code: "GEL", symbol: "₾" },
-  INTL: { code: "USD", symbol: "$" },
-} as const satisfies Record<Region, { code: string; symbol: string }>;
-
-export const REGIONS: readonly Region[] = ["GE", "INTL"];
-
-export function isRegion(value: unknown): value is Region {
-  return value === "GE" || value === "INTL";
-}
-
-/**
- * Map a Vercel geo country code (`x-vercel-ip-country`) to a shop region.
- * Georgia gets the local region; everything else is treated as international.
- */
-export function regionFromCountry(country: string | null | undefined): Region {
-  return country?.toUpperCase() === "GE" ? "GE" : "INTL";
-}
+// The vocabulary lives in `currency.ts` so Client Components can format a price
+// without pulling `next/headers` into the browser bundle; this module adds the
+// part that can only run on the server — resolving the active region.
+export {
+  CURRENCY,
+  REGIONS,
+  REGION_COOKIE,
+  isRegion,
+  regionFromCountry,
+  type Region,
+} from "@/lib/currency";
 
 /**
  * Resolve the active region for the current request. An explicit choice stored

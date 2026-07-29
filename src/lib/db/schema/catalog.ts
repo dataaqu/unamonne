@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  index,
   integer,
   pgTable,
   text,
@@ -9,6 +10,7 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
+import { users } from "./auth";
 import { locale } from "./common";
 
 /**
@@ -93,8 +95,20 @@ export const products = pgTable("product", {
   categoryId: text("category_id").references(() => categories.id, {
     onDelete: "set null",
   }),
+  /** Reference the studio prints on the tag, e.g. UNM-SIG-16. */
+  sku: text("sku"),
+  /**
+   * Run size for a limited edition ("Edition of 40" on the card). Null means an
+   * open run — the badge is simply not shown.
+   */
+  editionSize: integer("edition_size"),
   priceGel: integer("price_gel").notNull(),
   priceUsd: integer("price_usd").notNull(),
+  /**
+   * Stock for a product without variants. When a product HAS variants, the
+   * variant rows own the counts and this column is ignored for availability —
+   * see `productStock()` in src/lib/shop.ts.
+   */
   stock: integer("stock").notNull().default(0),
   isFeatured: boolean("is_featured").notNull().default(false),
   isHidden: boolean("is_hidden").notNull().default(false),
@@ -140,12 +154,132 @@ export const productImages = pgTable("product_image", {
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 
+/**
+ * A buyable option of a product — a ring size, a chain length, a metal. Stock
+ * is per variant, because "size 18 is gone" is the honest answer a jewellery
+ * buyer needs; the product-level `stock` column only applies when a product has
+ * no variants at all.
+ *
+ * `isMadeToOrder` is the third state between in stock and sold out: nothing on
+ * the shelf, but the studio will cut one — it stays orderable with a longer
+ * lead time instead of being struck through.
+ *
+ * Variants do not carry their own price. Every size of a piece costs the same
+ * in this catalog, and a per-variant price would have to be snapshotted in both
+ * currencies everywhere a price already is.
+ */
+export const productVariants = pgTable(
+  "product_variant",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    /** Short, language-neutral: "16", "42 cm", "Gold". */
+    label: text("label").notNull(),
+    sku: text("sku"),
+    stock: integer("stock").notNull().default(0),
+    isMadeToOrder: boolean("is_made_to_order").notNull().default(false),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("product_variant_product_label_uq").on(t.productId, t.label)],
+);
+
+/**
+ * The spec table under the product description (Metal / Weight / Made in …).
+ * Rows are per locale, because both the label and the value are prose.
+ */
+export const productSpecs = pgTable(
+  "product_spec",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    locale: locale("locale").notNull(),
+    label: text("label").notNull(),
+    value: text("value").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (t) => [index("product_spec_product_locale_idx").on(t.productId, t.locale)],
+);
+
+/**
+ * Customer reviews. Signed-in only (`userId` is required and unique per
+ * product), which is the cheapest honest anti-spam rule there is: one account,
+ * one review, and a real person to attach it to.
+ *
+ * `authorName` is snapshotted from the account at write time so a later profile
+ * rename does not silently rewrite an old review's byline, and `isVerified`
+ * records whether the reviewer had actually bought the piece.
+ */
+export const productReviews = pgTable(
+  "product_review",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    authorName: text("author_name").notNull(),
+    rating: integer("rating").notNull(),
+    body: text("body").notNull(),
+    /** Which option they bought, shown under the review ("Size 16"). */
+    variantLabel: text("variant_label"),
+    isVerified: boolean("is_verified").notNull().default(false),
+    isPublished: boolean("is_published").notNull().default(true),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("product_review_product_user_uq").on(t.productId, t.userId),
+    index("product_review_product_idx").on(t.productId),
+  ],
+);
+
 export const productsRelations = relations(products, ({ many, one }) => ({
   translations: many(productTranslations),
   images: many(productImages),
+  variants: many(productVariants),
+  specs: many(productSpecs),
+  reviews: many(productReviews),
   category: one(categories, {
     fields: [products.categoryId],
     references: [categories.id],
+  }),
+}));
+
+export const productVariantsRelations = relations(productVariants, ({ one }) => ({
+  product: one(products, {
+    fields: [productVariants.productId],
+    references: [products.id],
+  }),
+}));
+
+export const productSpecsRelations = relations(productSpecs, ({ one }) => ({
+  product: one(products, {
+    fields: [productSpecs.productId],
+    references: [products.id],
+  }),
+}));
+
+export const productReviewsRelations = relations(productReviews, ({ one }) => ({
+  product: one(products, {
+    fields: [productReviews.productId],
+    references: [products.id],
+  }),
+  user: one(users, {
+    fields: [productReviews.userId],
+    references: [users.id],
   }),
 }));
 
@@ -172,3 +306,9 @@ export type ProductTranslation = typeof productTranslations.$inferSelect;
 export type NewProductTranslation = typeof productTranslations.$inferInsert;
 export type ProductImage = typeof productImages.$inferSelect;
 export type NewProductImage = typeof productImages.$inferInsert;
+export type ProductVariant = typeof productVariants.$inferSelect;
+export type NewProductVariant = typeof productVariants.$inferInsert;
+export type ProductSpec = typeof productSpecs.$inferSelect;
+export type NewProductSpec = typeof productSpecs.$inferInsert;
+export type ProductReview = typeof productReviews.$inferSelect;
+export type NewProductReview = typeof productReviews.$inferInsert;

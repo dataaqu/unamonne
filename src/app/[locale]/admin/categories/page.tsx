@@ -20,7 +20,7 @@ export default async function AdminCategoriesPage() {
   });
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
+    <main className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{t("categories")}</h1>
         <Link

@@ -28,7 +28,7 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
+    <main className="flex flex-1 flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold">{t("dashboard")}</h1>
         <p className="text-sm text-muted-foreground">

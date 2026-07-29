@@ -32,7 +32,7 @@ export default async function EditShippingZonePage({
   const usd = zone.rates.find((rate) => rate.currency === "USD");
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
+    <main className="flex flex-1 flex-col gap-6">
       <h1 className="text-2xl font-semibold">{t("editZone")}</h1>
       <ZoneForm
         action={updateZone}

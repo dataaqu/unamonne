@@ -26,7 +26,7 @@ export default async function NewProductPage() {
   const options = await categoryOptions(locale);
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
+    <main className="flex flex-1 flex-col gap-6">
       <h1 className="text-2xl font-semibold">{t("newProduct")}</h1>
       <ProductForm action={createProduct} categories={options} />
     </main>

@@ -13,6 +13,7 @@ function localeFields(
     slug: string;
     description: string | null;
   }[],
+  specs: { locale: string; label: string; value: string; sortOrder: number }[],
   locale: "ka" | "en",
 ) {
   const tr = translations.find((t) => t.locale === locale);
@@ -20,6 +21,10 @@ function localeFields(
     name: tr?.name ?? "",
     slug: tr?.slug ?? "",
     description: tr?.description ?? "",
+    specs: specs
+      .filter((spec) => spec.locale === locale)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((spec) => ({ label: spec.label, value: spec.value })),
   };
 }
 
@@ -36,7 +41,7 @@ export default async function EditProductPage({
 
   const product = await db.query.products.findFirst({
     where: (p, { eq }) => eq(p.id, id),
-    with: { translations: true, images: true },
+    with: { translations: true, images: true, variants: true, specs: true },
   });
   if (!product) notFound();
 
@@ -49,18 +54,28 @@ export default async function EditProductPage({
     stock: product.stock,
     sortOrder: product.sortOrder,
     categoryId: product.categoryId ?? "",
+    sku: product.sku ?? "",
+    editionSize: product.editionSize ? String(product.editionSize) : "",
     isFeatured: product.isFeatured,
     isHidden: product.isHidden,
     isOutOfStock: product.isOutOfStock,
     imageUrls: [...product.images]
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((img) => img.url),
-    ka: localeFields(product.translations, "ka"),
-    en: localeFields(product.translations, "en"),
+    variants: [...product.variants]
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label))
+      .map((variant) => ({
+        label: variant.label,
+        sku: variant.sku ?? "",
+        stock: variant.stock,
+        isMadeToOrder: variant.isMadeToOrder,
+      })),
+    ka: localeFields(product.translations, product.specs, "ka"),
+    en: localeFields(product.translations, product.specs, "en"),
   };
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
+    <main className="flex flex-1 flex-col gap-6">
       <h1 className="text-2xl font-semibold">{t("editProduct")}</h1>
       <ProductForm
         action={updateProduct}

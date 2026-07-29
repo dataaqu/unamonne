@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, notInArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -8,11 +8,18 @@ import { slugify } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import {
   productImages,
+  productSpecs,
   productTranslations,
+  productVariants,
   products,
 } from "@/lib/db/schema";
 
-import { extractProductForm, productFormSchema } from "./product-schema";
+import {
+  extractProductForm,
+  extractSpecs,
+  extractVariants,
+  productFormSchema,
+} from "./product-schema";
 import { requireAdmin, type AdminFormState } from "./form";
 
 function afterWrite(locale: string): never {
@@ -33,6 +40,76 @@ function readImageUrls(formData: FormData): string[] {
     .getAll("imageUrls")
     .map((v) => String(v).trim())
     .filter(Boolean);
+}
+
+/**
+ * Write the variant and specification rows for a product.
+ *
+ * Variants are upserted on (product, label) rather than deleted and recreated:
+ * cart lines and back-in-stock requests point at variant ids, and replacing the
+ * set wholesale would cascade those away every time an admin saved the form.
+ * Rows the admin removed are deleted explicitly.
+ *
+ * Specs have no such references, so replacing them is safe and keeps ordering
+ * exactly as typed.
+ */
+async function writeVariantsAndSpecs(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  productId: string,
+  formData: FormData,
+) {
+  const variants = extractVariants(formData);
+  const specs = extractSpecs(formData);
+
+  const keep = variants.map((variant) => variant.label);
+  if (keep.length === 0) {
+    await tx.delete(productVariants).where(eq(productVariants.productId, productId));
+  } else {
+    await tx
+      .delete(productVariants)
+      .where(
+        and(
+          eq(productVariants.productId, productId),
+          notInArray(productVariants.label, keep),
+        ),
+      );
+
+    for (const [index, variant] of variants.entries()) {
+      await tx
+        .insert(productVariants)
+        .values({
+          productId,
+          label: variant.label,
+          sku: variant.sku || null,
+          stock: variant.stock,
+          isMadeToOrder: variant.isMadeToOrder,
+          sortOrder: index,
+        })
+        .onConflictDoUpdate({
+          target: [productVariants.productId, productVariants.label],
+          set: {
+            sku: variant.sku || null,
+            stock: variant.stock,
+            isMadeToOrder: variant.isMadeToOrder,
+            sortOrder: index,
+            updatedAt: new Date(),
+          },
+        });
+    }
+  }
+
+  await tx.delete(productSpecs).where(eq(productSpecs.productId, productId));
+  if (specs.length > 0) {
+    await tx.insert(productSpecs).values(
+      specs.map((spec, index) => ({
+        productId,
+        locale: spec.locale,
+        label: spec.label,
+        value: spec.value,
+        sortOrder: index,
+      })),
+    );
+  }
 }
 
 export async function createProduct(
@@ -59,6 +136,8 @@ export async function createProduct(
         stock: d.stock,
         sortOrder: d.sortOrder,
         categoryId: d.categoryId || null,
+        sku: d.sku || null,
+        editionSize: d.editionSize,
         ...flags,
       })
       .returning();
@@ -89,6 +168,8 @@ export async function createProduct(
         })),
       );
     }
+
+    await writeVariantsAndSpecs(tx, product.id, formData);
   });
 
   afterWrite(locale);
@@ -136,6 +217,8 @@ export async function updateProduct(
         stock: d.stock,
         sortOrder: d.sortOrder,
         categoryId: d.categoryId || null,
+        sku: d.sku || null,
+        editionSize: d.editionSize,
         ...flags,
         updatedAt: new Date(),
       })
@@ -164,6 +247,8 @@ export async function updateProduct(
         })),
       );
     }
+
+    await writeVariantsAndSpecs(tx, id, formData);
   });
 
   afterWrite(locale);

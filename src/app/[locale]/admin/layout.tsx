@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { AdminNav } from "@/components/admin/admin-nav";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import { auth } from "@/lib/auth";
 
 /**
@@ -31,14 +32,16 @@ export default async function AdminLayout({
   const t = await getTranslations("Admin");
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1">
-      <aside className="w-56 shrink-0 border-r p-4">
-        <p className="mb-4 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t("title")}
-        </p>
-        <AdminNav />
-      </aside>
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
+    <SiteChrome locale={locale} footer="slim" announcement={false}>
+      <div className="mx-auto flex w-full max-w-[1600px] flex-1 px-6 lg:px-10">
+        <aside className="hidden w-56 shrink-0 border-r border-ink-200 py-8 pr-6 sm:block">
+          <p className="mb-4 text-[10px] uppercase tracking-[0.2em] text-ink-500">
+            {t("title")}
+          </p>
+          <AdminNav />
+        </aside>
+        <div className="min-w-0 flex-1 py-8 sm:pl-8">{children}</div>
+      </div>
+    </SiteChrome>
   );
 }

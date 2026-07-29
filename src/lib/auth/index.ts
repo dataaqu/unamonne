@@ -12,6 +12,7 @@ import {
   users,
   verificationTokens,
 } from "@/lib/db/schema";
+import { WISHLIST_COOKIE, claimGuestWishlist } from "@/lib/wishlist-store";
 
 import { verifyPassword } from "./password";
 
@@ -72,17 +73,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   events: {
     /**
-     * Carry an anonymous cart across sign-in: the guest cart is claimed for the
-     * user (or folded into one they already have), so items added before
-     * logging in are never silently lost. Failures here must not block sign-in.
+     * Carry anonymous state across sign-in: the guest cart is claimed for the
+     * user (or folded into one they already have) and the saved pieces are
+     * moved onto the account, so nothing collected before logging in is
+     * silently lost. Failures here must not block sign-in.
      */
     async signIn({ user }) {
       if (!user.id) return;
+      const jar = await cookies();
+
       try {
-        const token = (await cookies()).get(CART_COOKIE)?.value;
+        const token = jar.get(CART_COOKIE)?.value;
         if (token) await claimGuestCart(user.id, token);
       } catch (error) {
         console.error("[auth] failed to claim guest cart on sign-in", error);
+      }
+
+      try {
+        const token = jar.get(WISHLIST_COOKIE)?.value;
+        if (token) await claimGuestWishlist(user.id, token);
+      } catch (error) {
+        console.error("[auth] failed to claim saved pieces on sign-in", error);
       }
     },
   },

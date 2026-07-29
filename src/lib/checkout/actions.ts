@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { cartTotals } from "@/lib/cart";
 import { getCart } from "@/lib/cart-session";
+import { quoteDiscount, recordRedemption } from "@/lib/discounts";
 import { appUrl } from "@/lib/email/client";
 import { createOrderFromCart, findOrderById } from "@/lib/orders";
 import { buildBogOrderPayload, createBogPayment } from "@/lib/payments/bog";
@@ -45,10 +46,16 @@ export async function startCheckout(
   const region = await getRegion();
   const { subtotal } = cartTotals(cart, region);
 
+  // Re-price the offer code here rather than trusting what the cart displayed:
+  // a code can expire, run out, or stop clearing its minimum between the cart
+  // page and this submit.
+  const discount = await quoteDiscount(cart.discountCode, subtotal, region);
+
   const quote = quoteShipping(await getShippingZones(), {
     country: data.country,
     region,
-    subtotal,
+    // Free-shipping thresholds are judged on what is actually being paid.
+    subtotal: subtotal - (discount?.amount ?? 0),
   });
   if (!quote) return { ok: false, error: "NO_SHIPPING" };
 
@@ -61,6 +68,8 @@ export async function startCheckout(
     email: data.email,
     provider,
     shippingCost: quote.cost,
+    discount,
+    isGift: cart.isGift,
     address: {
       name: data.fullName,
       phone: data.phone,
@@ -74,6 +83,11 @@ export async function startCheckout(
 
   const order = await findOrderById(orderId);
   if (!order) return { ok: false, error: "UNKNOWN" };
+
+  // Count the redemption once the order exists. Deliberately not waiting for
+  // payment: a capped code that is held by an abandoned payment is a smaller
+  // problem than the same code being spent twice in parallel checkouts.
+  if (discount) await recordRedemption(discount.code);
 
   const base = appUrl();
   const successUrl = `${base}/${locale}/checkout/success?order=${orderId}`;

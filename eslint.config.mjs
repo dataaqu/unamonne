@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Design reference dump (git-ignored) — read, never shipped.
+    "unamonne/**",
   ]),
 ]);
 

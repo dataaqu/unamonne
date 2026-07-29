@@ -4,12 +4,14 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 import { users } from "./auth";
+import { products } from "./catalog";
 import { locale } from "./common";
 
 /**
@@ -28,6 +30,13 @@ export const blogPosts = pgTable("blog_post", {
   status: blogStatus("status").notNull().default("draft"),
   publishedAt: timestamp("published_at", { mode: "date" }),
   authorId: text("author_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  /**
+   * The piece the post is about, surfaced as the "in this piece" card in the
+   * article sidebar. Set-null on delete: a post outlives a discontinued piece.
+   */
+  productId: text("product_id").references(() => products.id, {
     onDelete: "set null",
   }),
   isFeatured: boolean("is_featured").notNull().default(false),
@@ -62,11 +71,87 @@ export const blogPostTranslations = pgTable(
   ],
 );
 
+/**
+ * Journal tags ("Workshop", "Guide", "Material", "Care"). Language-neutral
+ * ordering lives on the tag; the display name and the per-locale slug live on
+ * the translation, mirroring categories and products.
+ */
+export const blogTags = pgTable("blog_tag", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const blogTagTranslations = pgTable(
+  "blog_tag_translation",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => blogTags.id, { onDelete: "cascade" }),
+    locale: locale("locale").notNull(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+  },
+  (t) => [
+    uniqueIndex("blog_tag_translation_tag_locale_uq").on(t.tagId, t.locale),
+    uniqueIndex("blog_tag_translation_locale_slug_uq").on(t.locale, t.slug),
+  ],
+);
+
+export const blogPostTags = pgTable(
+  "blog_post_tag",
+  {
+    postId: text("post_id")
+      .notNull()
+      .references(() => blogPosts.id, { onDelete: "cascade" }),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => blogTags.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.tagId] })],
+);
+
 export const blogPostsRelations = relations(blogPosts, ({ many, one }) => ({
   translations: many(blogPostTranslations),
+  tags: many(blogPostTags),
   author: one(users, {
     fields: [blogPosts.authorId],
     references: [users.id],
+  }),
+  product: one(products, {
+    fields: [blogPosts.productId],
+    references: [products.id],
+  }),
+}));
+
+export const blogTagsRelations = relations(blogTags, ({ many }) => ({
+  translations: many(blogTagTranslations),
+  posts: many(blogPostTags),
+}));
+
+export const blogTagTranslationsRelations = relations(
+  blogTagTranslations,
+  ({ one }) => ({
+    tag: one(blogTags, {
+      fields: [blogTagTranslations.tagId],
+      references: [blogTags.id],
+    }),
+  }),
+);
+
+export const blogPostTagsRelations = relations(blogPostTags, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogPostTags.postId],
+    references: [blogPosts.id],
+  }),
+  tag: one(blogTags, {
+    fields: [blogPostTags.tagId],
+    references: [blogTags.id],
   }),
 }));
 
@@ -84,3 +169,7 @@ export type BlogPost = typeof blogPosts.$inferSelect;
 export type NewBlogPost = typeof blogPosts.$inferInsert;
 export type BlogPostTranslation = typeof blogPostTranslations.$inferSelect;
 export type NewBlogPostTranslation = typeof blogPostTranslations.$inferInsert;
+export type BlogTag = typeof blogTags.$inferSelect;
+export type NewBlogTag = typeof blogTags.$inferInsert;
+export type BlogTagTranslation = typeof blogTagTranslations.$inferSelect;
+export type NewBlogTagTranslation = typeof blogTagTranslations.$inferInsert;

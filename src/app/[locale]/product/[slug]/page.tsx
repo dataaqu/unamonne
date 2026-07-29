@@ -2,15 +2,35 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { AddToCartButton } from "@/components/shop/add-to-cart-button";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import { JsonLd } from "@/components/seo/json-ld";
+import { BuyForm } from "@/components/shop/buy-form";
+import { ProductCard } from "@/components/shop/product-card";
+import { ProductGallery } from "@/components/shop/product-gallery";
+import { ReviewForm } from "@/components/shop/review-form";
+import { SaveButton } from "@/components/shop/save-button";
+import { Rating } from "@/components/ui/badge";
+import { ArrowLink } from "@/components/ui/btn";
+import { Breadcrumbs } from "@/components/ui/chip";
+import { CheckIcon, MoonIcon, TruckIcon } from "@/components/ui/icons";
+import { Disclosure } from "@/components/ui/notice";
+import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { auth } from "@/lib/auth";
 import { pickTranslation } from "@/lib/catalog";
-import { formatMoney } from "@/lib/money";
+import { formatPrice } from "@/lib/money";
 import { getRegion } from "@/lib/region";
 import { breadcrumbJsonLd, productJsonLd } from "@/lib/seo/jsonld";
 import { localizedUrl } from "@/lib/seo/metadata";
-import { getProductBySlug } from "@/lib/shop";
+import { cn } from "@/lib/utils";
+import {
+  getProductBySlug,
+  getProductReviews,
+  getRelatedProducts,
+  getReviewSummary,
+  isProductAvailable,
+} from "@/lib/shop";
+import { getSavedProductIds } from "@/lib/wishlist";
 
 export async function generateMetadata({
   params,
@@ -28,8 +48,8 @@ export async function generateMetadata({
   )[0];
 
   const languages: Record<string, string> = {};
-  for (const t of product.translations) {
-    languages[t.locale] = localizedUrl(t.locale, `/product/${t.slug}`);
+  for (const row of product.translations) {
+    languages[row.locale] = localizedUrl(row.locale, `/product/${row.slug}`);
   }
   languages["x-default"] = languages[routing.defaultLocale] ?? languages[locale];
 
@@ -53,24 +73,53 @@ export default async function ProductPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
-  const locale = (await getLocale()) as Locale;
+  const [{ slug }, locale] = await Promise.all([
+    params,
+    getLocale() as Promise<Locale>,
+  ]);
 
   const product = await getProductBySlug(locale, slug);
   if (!product) notFound();
 
-  const [region, t] = await Promise.all([
+  const [region, t, tShop, session] = await Promise.all([
     getRegion(),
+    getTranslations("Product"),
     getTranslations("Shop"),
+    auth(),
+  ]);
+
+  const [summary, reviews, related, saved] = await Promise.all([
+    getReviewSummary(product.id),
+    getProductReviews(product.id),
+    getRelatedProducts(product),
+    getSavedProductIds(),
   ]);
 
   const tr = pickTranslation(product.translations, locale);
   const images = [...product.images].sort((a, b) => a.sortOrder - b.sortOrder);
   const price = region === "GE" ? product.priceGel : product.priceUsd;
-  const soldOut = product.isOutOfStock || product.stock <= 0;
+  const available = isProductAvailable(product);
+  const categoryTr = product.category
+    ? pickTranslation(product.category.translations, locale)
+    : null;
+
+  const specs = product.specs
+    .filter((spec) => spec.locale === locale)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const url = localizedUrl(locale, `/product/${tr?.slug ?? slug}`);
+
+  const ownReview =
+    session?.user?.id != null
+      ? (reviews.find((review) => review.userId === session.user?.id) ?? null)
+      : null;
+
+  const dateFmt = new Intl.DateTimeFormat(locale === "ka" ? "ka-GE" : "en-US", {
+    dateStyle: "medium",
+  });
 
   return (
-    <main className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 py-8 md:grid-cols-2">
+    <SiteChrome locale={locale} section="shop">
       <JsonLd
         data={productJsonLd({
           name: tr?.name ?? "",
@@ -78,52 +127,290 @@ export default async function ProductPage({
           image: images[0]?.url,
           price,
           currency: region === "GE" ? "GEL" : "USD",
-          inStock: !soldOut,
-          url: localizedUrl(locale, `/product/${tr?.slug ?? slug}`),
+          inStock: available,
+          url,
         })}
       />
       <JsonLd
-        data={breadcrumbJsonLd([
-          { name: "Vintage", url: localizedUrl(locale, "") },
-          { name: t("title"), url: localizedUrl(locale, "/shop") },
-          {
-            name: tr?.name ?? "",
-            url: localizedUrl(locale, `/product/${tr?.slug ?? slug}`),
-          },
-        ])}
+        data={breadcrumbJsonLd(
+          [
+            { name: tShop("title"), url: localizedUrl(locale, "/shop") },
+            categoryTr
+              ? {
+                  name: categoryTr.name,
+                  url: localizedUrl(locale, `/category/${categoryTr.slug}`),
+                }
+              : null,
+            { name: tr?.name ?? "", url },
+          ].filter((crumb) => crumb !== null),
+        )}
       />
-      <div className="grid grid-cols-2 gap-3">
-        {images.map((image) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={image.url}
-            src={image.url}
-            alt={tr?.name ?? ""}
-            className="aspect-square w-full rounded-lg border object-cover first:col-span-2"
+
+      <div className="mx-auto w-full max-w-[1600px] px-6 lg:px-10">
+        <Breadcrumbs
+          className="py-6"
+          items={[
+            { label: tShop("title"), href: "/shop" },
+            ...(categoryTr
+              ? [{ label: categoryTr.name, href: `/category/${categoryTr.slug}` }]
+              : []),
+            { label: tr?.name ?? "" },
+          ]}
+        />
+
+        {/* gallery + buy */}
+        <div className="grid gap-10 pb-16 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
+          <ProductGallery
+            name={tr?.name ?? ""}
+            images={images.map((image) => ({ url: image.url, alt: image.alt }))}
+            badge={
+              product.editionSize
+                ? tShop("edition", { count: product.editionSize })
+                : null
+            }
+            saveSlot={
+              <SaveButton
+                productId={product.id}
+                productName={tr?.name ?? ""}
+                saved={saved.has(product.id)}
+                size="detail"
+              />
+            }
           />
-        ))}
-      </div>
 
-      <div className="space-y-4">
-        <h1 className="text-3xl font-semibold tracking-tight">{tr?.name}</h1>
-        <p className="text-2xl">{formatMoney(price, region, locale)}</p>
+          <div className="lg:pt-2">
+            <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-ink-500">
+              {categoryTr ? (
+                <Link
+                  href={`/category/${categoryTr.slug}`}
+                  className="hover:text-ink-900"
+                >
+                  {categoryTr.name}
+                </Link>
+              ) : null}
+              {categoryTr && product.sku ? (
+                <span className="text-ink-300">·</span>
+              ) : null}
+              {product.sku ? (
+                <span className="font-mono normal-case tracking-normal">
+                  {product.sku}
+                </span>
+              ) : null}
+            </div>
 
-        <p
-          className={
-            soldOut ? "text-sm text-destructive" : "text-sm text-green-600"
-          }
+            <h1 className="mt-4 text-4xl leading-[1] tracking-[-0.03em] text-balance sm:text-5xl">
+              {tr?.name}
+            </h1>
+
+            <div className="mt-5 flex flex-wrap items-baseline gap-4">
+              <span className="text-2xl tabular-nums">
+                {formatPrice(price, region)}
+              </span>
+              <span className="text-xs text-ink-500">
+                {region === "GE" ? t("taxIncluded") : t("dutiesAtCheckout")}
+              </span>
+            </div>
+
+            {summary.count > 0 ? (
+              <div className="mt-3 flex items-center gap-2">
+                <Rating value={summary.average} />
+                <span className="text-ink-300">·</span>
+                <a
+                  href="#reviews"
+                  className="text-[11px] text-ink-600 underline underline-offset-4 hover:text-ink-900"
+                >
+                  {t("reviewCount", { count: summary.count })}
+                </a>
+              </div>
+            ) : null}
+
+            {tr?.description ? (
+              <p className="mt-7 max-w-md whitespace-pre-line text-[15px] leading-[1.7] text-ink-700">
+                {tr.description}
+              </p>
+            ) : null}
+
+            <BuyForm
+              productId={product.id}
+              locale={locale}
+              region={region}
+              unitPrice={price}
+              isSoldOut={!available}
+              allowEngraving={product.variants.length > 0}
+              variants={product.variants.map((variant) => ({
+                id: variant.id,
+                label: variant.label,
+                stock: variant.stock,
+                isMadeToOrder: variant.isMadeToOrder,
+              }))}
+            />
+
+            <div className="mt-9 border-t border-ink-200">
+              {[
+                {
+                  icon: <TruckIcon className="h-4 w-4" />,
+                  text: t("shippingRow"),
+                },
+                { icon: <MoonIcon className="h-4 w-4" />, text: t("giftRow") },
+                {
+                  icon: <CheckIcon className="h-4 w-4" />,
+                  text: t("returnsRow"),
+                },
+              ].map((row) => (
+                <div
+                  key={row.text}
+                  className="flex items-center gap-3 border-b border-ink-200 py-3.5 text-[13px] text-ink-700"
+                >
+                  <span className="text-ink-500">{row.icon}</span>
+                  {row.text}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* specification + before you buy */}
+        <div
+          className={cn(
+            "grid gap-12 border-t border-ink-900 py-14 lg:gap-20",
+            // Without a specification table the FAQ takes the full measure
+            // rather than leaving half the row empty.
+            specs.length > 0 ? "lg:grid-cols-2" : "",
+          )}
         >
-          {soldOut ? t("outOfStock") : t("inStock")}
-        </p>
+          {specs.length > 0 ? (
+            <div>
+              <h2 className="text-[11px] uppercase tracking-[0.2em] text-ink-500">
+                {t("specs")}
+              </h2>
+              <dl className="mt-6 max-w-md border-t border-ink-200">
+                {specs.map((spec) => (
+                  <div
+                    key={spec.id}
+                    className="flex items-baseline justify-between gap-6 border-b border-ink-200 py-3 text-[13px]"
+                  >
+                    <dt className="text-ink-500">{spec.label}</dt>
+                    <dd className="text-right tabular-nums">{spec.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : null}
 
-        <AddToCartButton productId={product.id} disabled={soldOut} />
+          <div className="max-w-2xl">
+            <h2 className="text-2xl tracking-[-0.02em]">{t("beforeYouBuy")}</h2>
+            <div className="mt-6 border-t border-ink-200">
+              <Disclosure question={t("faq.sizingQ")}>
+                {t("faq.sizingA")}
+              </Disclosure>
+              <Disclosure question={t("faq.returnsQ")}>
+                {t("faq.returnsA")}
+              </Disclosure>
+              <Disclosure question={t("faq.giftQ")}>{t("faq.giftA")}</Disclosure>
+              <Disclosure question={t("faq.paymentQ")}>
+                {t("faq.paymentA")}
+              </Disclosure>
+            </div>
+          </div>
+        </div>
 
-        {tr?.description ? (
-          <p className="whitespace-pre-line text-muted-foreground">
-            {tr.description}
-          </p>
+        {/* reviews */}
+        <section id="reviews" className="border-t border-ink-200 py-14">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-3xl tracking-[-0.025em]">{t("reviews")}</h2>
+            {summary.count > 0 ? (
+              <Rating value={summary.average} count={summary.count} />
+            ) : null}
+          </div>
+
+          <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-20">
+            <div>
+              {reviews.length === 0 ? (
+                <p className="text-[13px] text-ink-500">{t("noReviews")}</p>
+              ) : (
+                <ul className="space-y-8">
+                  {reviews.map((review) => (
+                    <li
+                      key={review.id}
+                      className="border-b border-ink-200 pb-8 last:border-b-0"
+                    >
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-[11px] uppercase tracking-[0.16em]">
+                          {review.authorName}
+                        </span>
+                        <Rating value={review.rating} />
+                        {review.isVerified ? (
+                          <span className="text-[10px] uppercase tracking-[0.16em] text-success-700">
+                            {t("verified")}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-2 max-w-lg whitespace-pre-line text-[13px] leading-relaxed text-ink-700">
+                        {review.body}
+                      </p>
+                      <div className="mt-2 text-xs text-ink-500">
+                        {review.variantLabel ? `${review.variantLabel} · ` : ""}
+                        {dateFmt.format(review.createdAt)}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              {session?.user ? (
+                <ReviewForm
+                  productId={product.id}
+                  variantLabels={product.variants.map((v) => v.label)}
+                  existing={
+                    ownReview
+                      ? {
+                          rating: ownReview.rating,
+                          body: ownReview.body,
+                          variantLabel: ownReview.variantLabel,
+                        }
+                      : null
+                  }
+                />
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-[11px] uppercase tracking-[0.16em] text-ink-600 underline underline-offset-4 hover:text-ink-900"
+                >
+                  {t("signInToReview")}
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* pairs well with */}
+        {related.length > 0 ? (
+          <section className="border-t border-ink-200 py-14">
+            <div className="flex items-end justify-between gap-6">
+              <h2 className="text-3xl tracking-[-0.025em] sm:text-4xl">
+                {t("pairsWith")}
+              </h2>
+              <ArrowLink href="/shop" className="hidden sm:inline-flex">
+                {t("allProducts")}
+              </ArrowLink>
+            </div>
+            <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
+              {related.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  product={item}
+                  locale={locale}
+                  region={region}
+                  saved={saved.has(item.id)}
+                  imageClassName="h-[240px] sm:h-[300px]"
+                />
+              ))}
+            </div>
+          </section>
         ) : null}
       </div>
-    </main>
+    </SiteChrome>
   );
 }

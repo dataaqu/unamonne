@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import { slugify } from "@/lib/catalog";
 import { db } from "@/lib/db";
-import { blogPostTranslations, blogPosts } from "@/lib/db/schema";
+import { blogPostTags, blogPostTranslations, blogPosts } from "@/lib/db/schema";
 import { scoreSeo } from "@/lib/seo/scorer";
 
 import {
@@ -93,11 +93,33 @@ function readMeta(formData: FormData) {
     .getAll("imageUrls")
     .map((v) => String(v).trim())
     .filter(Boolean)[0];
+  const productId = String(formData.get("productId") ?? "").trim();
   return {
     status: isPublishStatus(status) ? status : "draft",
     isFeatured: formData.get("isFeatured") != null,
     coverUrl: coverUrl ?? null,
+    // The piece the post is about, shown as the article's sidebar card.
+    productId: productId || null,
+    tagIds: formData
+      .getAll("tagIds")
+      .map((value) => String(value).trim())
+      .filter(Boolean),
   };
+}
+
+/** Replace a post's tag links. The join table has nothing else to preserve. */
+async function writeTags(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  postId: string,
+  tagIds: string[],
+) {
+  await tx.delete(blogPostTags).where(eq(blogPostTags.postId, postId));
+  if (tagIds.length > 0) {
+    await tx
+      .insert(blogPostTags)
+      .values(tagIds.map((tagId) => ({ postId, tagId })))
+      .onConflictDoNothing();
+  }
 }
 
 export async function createPost(
@@ -121,6 +143,7 @@ export async function createPost(
         status: meta.status,
         coverUrl: meta.coverUrl,
         isFeatured: meta.isFeatured,
+        productId: meta.productId,
         publishedAt: meta.status === "published" ? new Date() : null,
       })
       .returning();
@@ -140,6 +163,8 @@ export async function createPost(
         seoScore: t.seoScore,
       })),
     );
+
+    await writeTags(tx, post.id, meta.tagIds);
   });
 
   afterWrite(locale);
@@ -178,6 +203,7 @@ export async function updatePost(
         status: meta.status,
         coverUrl: meta.coverUrl,
         isFeatured: meta.isFeatured,
+        productId: meta.productId,
         publishedAt,
         updatedAt: new Date(),
       })
@@ -204,6 +230,8 @@ export async function updatePost(
           ),
         );
     }
+
+    await writeTags(tx, id, meta.tagIds);
   });
 
   afterWrite(locale);

@@ -34,7 +34,7 @@ export default async function AdminOrdersPage({
     "rounded-md border bg-background px-2 py-1.5 text-sm";
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
+    <main className="flex flex-1 flex-col gap-6">
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
 
       <form className="flex flex-wrap items-end gap-3">

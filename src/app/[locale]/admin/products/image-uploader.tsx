@@ -7,9 +7,19 @@ import { createProductImageUpload } from "@/lib/media/actions";
 
 /**
  * Uploads product images to R2 via presigned PUT (browser → R2 directly), then
- * carries the resulting public URLs in hidden `imageUrls` inputs for the form.
+ * carries the resulting public URLs in hidden inputs for the form.
+ *
+ * `name` defaults to `imageUrls` (the product gallery). The editorial settings
+ * form renders several uploaders in one form and gives each its own name, so
+ * the values stay separable server-side.
  */
-export function ImageUploader({ initialUrls = [] }: { initialUrls?: string[] }) {
+export function ImageUploader({
+  initialUrls = [],
+  name = "imageUrls",
+}: {
+  initialUrls?: string[];
+  name?: string;
+}) {
   const t = useTranslations("Admin.form");
   const [urls, setUrls] = useState<string[]>(initialUrls);
   const [busy, setBusy] = useState(false);
@@ -43,7 +53,7 @@ export function ImageUploader({ initialUrls = [] }: { initialUrls?: string[] }) 
   return (
     <div className="space-y-2">
       {urls.map((url) => (
-        <input key={url} type="hidden" name="imageUrls" value={url} />
+        <input key={url} type="hidden" name={name} value={url} />
       ))}
 
       <div className="flex flex-wrap gap-2">

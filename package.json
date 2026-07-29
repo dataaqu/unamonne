@@ -15,7 +15,9 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:check": "tsx scripts/db-check.ts",
-    "seed:admin": "tsx scripts/seed-admin.ts"
+    "r2:check": "tsx scripts/r2-check.ts",
+    "seed:admin": "tsx scripts/seed-admin.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",

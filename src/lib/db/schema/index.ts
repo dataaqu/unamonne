@@ -8,7 +8,9 @@
  *   - commerce T3.1  carts, cart items  ✅  shipping T3.3 ✅  orders T3.4 ✅
  *              T4.2  abandoned cart emails  ✅
  *   - account  T3.7  addresses  ✅
- *   - blog     T5.1  posts (+ translations)  ✅
+ *   - blog     T5.1  posts (+ translations)  ✅  tags + post→product ✅
+ *   - catalog  variants, specs, reviews  ✅
+ *   - engagement  wishlist, back-in-stock, newsletter, discount codes  ✅
  */
 // `common` must be exported too — drizzle-kit only emits CREATE TYPE for enums
 // it can reach from this barrel.
@@ -18,3 +20,5 @@ export * from "./catalog";
 export * from "./commerce";
 export * from "./account";
 export * from "./blog";
+export * from "./engagement";
+export * from "./settings";

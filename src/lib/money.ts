@@ -1,4 +1,4 @@
-import { CURRENCY, type Region } from "@/lib/region";
+import { CURRENCY, type Region } from "@/lib/currency";
 
 /**
  * Prices are stored in minor units (tetri / cents). Pick the right column for
@@ -26,4 +26,19 @@ export function formatMoney(
     style: "currency",
     currency: CURRENCY[region].code,
   }).format(minorUnits / 100);
+}
+
+/**
+ * Shop-facing price. The house writes ₾1,090 rather than ₾1,090.00 — trailing
+ * zeroes are noise on a price list — but keeps the tetri/cents when a price
+ * actually has them. Grouping stays Latin in both locales so the numerals line
+ * up in tabular columns next to Georgian copy.
+ */
+export function formatPrice(minorUnits: number, region: Region): string {
+  const { symbol } = CURRENCY[region];
+  const amount = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(minorUnits / 100);
+  return `${symbol}${amount}`;
 }

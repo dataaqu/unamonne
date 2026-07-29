@@ -36,6 +36,10 @@ yarn-error.log*
 
 # vercel
 .vercel
+/unamonne/
+
+# cloudflare (wrangler CLI cache)
+/.wrangler/
 
 # typescript
 *.tsbuildinfo

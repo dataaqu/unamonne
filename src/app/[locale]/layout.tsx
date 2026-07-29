@@ -1,27 +1,36 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Noto_Sans_Georgian } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { routing } from "@/i18n/routing";
+import { BRAND } from "@/lib/brand";
 import { appUrl } from "@/lib/email/client";
 import { organizationJsonLd } from "@/lib/seo/jsonld";
 import "../globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+/**
+ * Helvetica Neue carries the Latin type (a system face, so nothing to load);
+ * Georgian falls through to Noto Sans Georgian, and numerals in code-like
+ * positions (order ids, SKUs) use IBM Plex Mono. See the `--font-sans` /
+ * `--font-mono` stacks in globals.css.
+ */
+const notoGeorgian = Noto_Sans_Georgian({
+  variable: "--font-noto-georgian",
+  subsets: ["georgian", "latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
 });
 
 /**
@@ -70,17 +79,11 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${notoGeorgian.variable} ${plexMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">
-        <JsonLd
-          data={organizationJsonLd({ name: "Vintage", url: appUrl() })}
-        />
-        <NextIntlClientProvider>
-          <SiteHeader />
-          {children}
-          <SiteFooter />
-        </NextIntlClientProvider>
+      <body className="flex min-h-full flex-col bg-ink-100 text-ink-900">
+        <JsonLd data={organizationJsonLd({ name: BRAND.name, url: appUrl() })} />
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
         <Analytics />
         <SpeedInsights />
       </body>

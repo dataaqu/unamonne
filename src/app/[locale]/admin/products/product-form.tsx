@@ -4,13 +4,24 @@ import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { ImageUploader } from "./image-uploader";
+import {
+  SpecRows,
+  VariantRows,
+  type SpecRowValue,
+  type VariantRowValue,
+} from "./variant-rows";
 import { Link } from "@/i18n/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AdminFormState } from "@/lib/admin/form";
 
-type LocaleFields = { name: string; slug: string; description: string };
+type LocaleFields = {
+  name: string;
+  slug: string;
+  description: string;
+  specs: SpecRowValue[];
+};
 
 export type ProductInitial = {
   id?: string;
@@ -19,10 +30,13 @@ export type ProductInitial = {
   stock: number;
   sortOrder: number;
   categoryId: string;
+  sku: string;
+  editionSize: string;
   isFeatured: boolean;
   isHidden: boolean;
   isOutOfStock: boolean;
   imageUrls: string[];
+  variants: VariantRowValue[];
   ka: LocaleFields;
   en: LocaleFields;
 };
@@ -33,12 +47,15 @@ const EMPTY: ProductInitial = {
   stock: 0,
   sortOrder: 0,
   categoryId: "",
+  sku: "",
+  editionSize: "",
   isFeatured: false,
   isHidden: false,
   isOutOfStock: false,
   imageUrls: [],
-  ka: { name: "", slug: "", description: "" },
-  en: { name: "", slug: "", description: "" },
+  variants: [],
+  ka: { name: "", slug: "", description: "", specs: [] },
+  en: { name: "", slug: "", description: "", specs: [] },
 };
 
 type Action = (
@@ -107,6 +124,7 @@ export function ProductForm({
                 className="w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               />
             </div>
+            <SpecRows locale={loc} initial={initial[loc].specs} />
           </fieldset>
         );
       })}
@@ -154,7 +172,24 @@ export function ProductForm({
             defaultValue={initial.sortOrder}
           />
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="sku">{t("sku")}</Label>
+          <Input id="sku" name="sku" defaultValue={initial.sku} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="editionSize">{t("editionSize")}</Label>
+          <Input
+            id="editionSize"
+            name="editionSize"
+            type="number"
+            min={1}
+            defaultValue={initial.editionSize}
+            placeholder={t("editionSizeHint")}
+          />
+        </div>
       </div>
+
+      <VariantRows initial={initial.variants} />
 
       <div className="space-y-1.5">
         <Label htmlFor="categoryId">{t("category")}</Label>

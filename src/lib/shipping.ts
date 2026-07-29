@@ -40,6 +40,33 @@ export function getShippingZones() {
   });
 }
 
+/**
+ * The subtotal at which shipping stops costing anything in a region, for the
+ * announcement bar and the cart's "spend X more" nudge. Reads the domestic zone
+ * for Georgia and the fallback zone for everywhere else — the same two zones a
+ * shopper in that region will actually be quoted.
+ *
+ * Null when shipping is not configured, or is never free; both mean the same
+ * thing to a caller: say nothing rather than promise something.
+ */
+export async function getFreeShippingThreshold(
+  region: Region,
+): Promise<number | null> {
+  try {
+    const zones = await getShippingZones();
+    const zone =
+      region === "GE"
+        ? zones.find((z) => z.isGeorgia)
+        : (zones.find((z) => z.isFallback) ?? zones.find((z) => !z.isGeorgia));
+    if (!zone) return null;
+
+    const currency = currencyForRegion(region);
+    return zone.rates.find((r) => r.currency === currency)?.freeThreshold ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Country codes are stored and compared as uppercase ISO-3166 alpha-2. */
 export function normalizeCountry(country: string): string {
   return country.trim().toUpperCase();

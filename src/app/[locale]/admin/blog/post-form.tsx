@@ -37,6 +37,9 @@ export type PostInitial = {
   status: "draft" | "published";
   isFeatured: boolean;
   coverUrls: string[];
+  /** The piece this post is about — rendered as the article's sidebar card. */
+  productId: string;
+  tagIds: string[];
   ka: LocaleFields;
   en: LocaleFields;
 };
@@ -45,6 +48,8 @@ const EMPTY: PostInitial = {
   status: "draft",
   isFeatured: false,
   coverUrls: [],
+  productId: "",
+  tagIds: [],
   ka: EMPTY_FIELDS,
   en: EMPTY_FIELDS,
 };
@@ -59,9 +64,13 @@ const LOCALES = ["ka", "en"] as const;
 export function PostForm({
   action,
   initial = EMPTY,
+  products = [],
+  tags = [],
 }: {
   action: Action;
   initial?: PostInitial;
+  products?: { id: string; name: string }[];
+  tags?: { id: string; name: string }[];
 }) {
   const t = useTranslations("Admin.blog");
   const tf = useTranslations("Admin.form");
@@ -110,7 +119,42 @@ export function PostForm({
           />
           {tf("featured")}
         </label>
+        <label className="flex items-center gap-2 text-sm">
+          {t("piece")}
+          <select
+            name="productId"
+            defaultValue={initial.productId}
+            className="rounded-md border bg-background px-2 py-1.5 text-sm"
+          >
+            <option value="">—</option>
+            {products.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
+
+      {tags.length > 0 ? (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">{t("tags")}</legend>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {tags.map((tag) => (
+              <label key={tag.id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="tagIds"
+                  value={tag.id}
+                  defaultChecked={initial.tagIds.includes(tag.id)}
+                  className="size-4"
+                />
+                {tag.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
 
       <div className="space-y-2">
         <Label>{t("cover")}</Label>

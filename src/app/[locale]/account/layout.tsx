@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { AccountNav } from "@/components/account/account-nav";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import { auth } from "@/lib/auth";
 
 /**
@@ -26,14 +27,16 @@ export default async function AccountLayout({
   const t = await getTranslations("Account");
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1">
-      <aside className="w-56 shrink-0 border-r p-4">
-        <p className="mb-4 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t("title")}
-        </p>
-        <AccountNav />
-      </aside>
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
+    <SiteChrome locale={locale} footer="slim">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-8 px-6 py-10 lg:flex-row lg:gap-14 lg:px-10">
+        <aside className="lg:w-56 lg:shrink-0">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink-500">
+            {t("title")}
+          </p>
+          <AccountNav />
+        </aside>
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+    </SiteChrome>
   );
 }

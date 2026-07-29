@@ -7,11 +7,12 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 import { users } from "./auth";
-import { products } from "./catalog";
+import { productVariants, products } from "./catalog";
 import { currency, region } from "./common";
 
 /**
@@ -52,6 +53,15 @@ export const carts = pgTable(
     email: text("email"),
     region: region("region").notNull(),
     status: cartStatus("status").notNull().default("active"),
+    /** "Leave the price off the slip" — carried through onto the order. */
+    isGift: boolean("is_gift").notNull().default(false),
+    /**
+     * The offer code the shopper applied, stored as text rather than as a
+     * foreign key: the discount is re-validated and re-priced on every render
+     * and again at checkout, so a code that expires mid-session simply stops
+     * applying instead of leaving a dangling reference.
+     */
+    discountCode: text("discount_code"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
@@ -79,6 +89,12 @@ export const cartItems = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
+    /** The chosen size / length / metal. Null for a product without variants. */
+    variantId: text("variant_id").references(() => productVariants.id, {
+      onDelete: "cascade",
+    }),
+    /** Free hand-engraving, up to a dozen characters. Null when not requested. */
+    engraving: text("engraving"),
     quantity: integer("quantity").notNull().default(1),
     unitPriceGel: integer("unit_price_gel").notNull(),
     unitPriceUsd: integer("unit_price_usd").notNull(),
@@ -86,9 +102,13 @@ export const cartItems = pgTable(
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
-    // Adding a product already in the cart bumps its quantity instead of
-    // creating a second row.
-    uniqueIndex("cart_item_cart_product_uq").on(t.cartId, t.productId),
+    // Re-adding the SAME configuration bumps its quantity instead of creating a
+    // second row — but size 16 and size 17, or two different engravings, are
+    // genuinely different lines. NULLS NOT DISTINCT so a plain product (no
+    // variant, no engraving) still collapses onto one row.
+    unique("cart_item_cart_product_uq")
+      .on(t.cartId, t.productId, t.variantId, t.engraving)
+      .nullsNotDistinct(),
   ],
 );
 
@@ -109,6 +129,10 @@ export const cartItemsRelations = relations(cartItems, ({ one }) => ({
   product: one(products, {
     fields: [cartItems.productId],
     references: [products.id],
+  }),
+  variant: one(productVariants, {
+    fields: [cartItems.variantId],
+    references: [productVariants.id],
   }),
 }));
 
@@ -245,9 +269,13 @@ export const orders = pgTable(
     region: region("region").notNull(),
     currency: currency("currency").notNull(),
     subtotal: integer("subtotal").notNull(),
+    /** Offer code applied, and what it took off — both frozen at checkout. */
+    discountCode: text("discount_code"),
+    discountAmount: integer("discount_amount").notNull().default(0),
     shippingCost: integer("shipping_cost").notNull().default(0),
     tax: integer("tax").notNull().default(0),
     total: integer("total").notNull(),
+    isGift: boolean("is_gift").notNull().default(false),
     paymentProvider: paymentProvider("payment_provider").notNull(),
     paymentStatus: paymentStatus("payment_status").notNull().default("pending"),
     fulfillmentStatus: fulfillmentStatus("fulfillment_status")
@@ -288,6 +316,9 @@ export const orderItems = pgTable("order_item", {
     onDelete: "set null",
   }),
   nameSnapshot: text("name_snapshot").notNull(),
+  /** Frozen alongside the name, for the same reason: "Size 16 · “ნინო”". */
+  variantLabel: text("variant_label"),
+  engraving: text("engraving"),
   quantity: integer("quantity").notNull(),
   unitPrice: integer("unit_price").notNull(),
   currency: currency("currency").notNull(),
