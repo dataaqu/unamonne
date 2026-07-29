@@ -6,7 +6,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { JsonLd } from "@/components/seo/json-ld";
 import { routing } from "@/i18n/routing";
+import { appUrl } from "@/lib/email/client";
+import { organizationJsonLd } from "@/lib/seo/jsonld";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -36,8 +39,14 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
   return {
-    title: t("title"),
+    metadataBase: new URL(appUrl()),
+    title: { default: t("title"), template: `%s · ${t("title")}` },
     description: t("description"),
+    openGraph: {
+      siteName: t("title"),
+      locale,
+      type: "website",
+    },
   };
 }
 
@@ -62,6 +71,9 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <JsonLd
+          data={organizationJsonLd({ name: "Vintage", url: appUrl() })}
+        />
         <NextIntlClientProvider>
           <SiteHeader />
           {children}

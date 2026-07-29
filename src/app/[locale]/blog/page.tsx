@@ -1,7 +1,20 @@
+import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { findPublishedPosts, pickTranslation } from "@/lib/blog";
+import { localizedAlternates } from "@/lib/seo/metadata";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations("Blog"),
+  ]);
+  return {
+    title: t("title"),
+    alternates: localizedAlternates(locale, "/blog"),
+  };
+}
 
 export default async function BlogIndexPage() {
   const [locale, t] = await Promise.all([
