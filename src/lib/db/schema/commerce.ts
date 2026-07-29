@@ -163,6 +163,129 @@ export const shippingRates = pgTable(
   ],
 );
 
+/**
+ * Which rail settled the order. `ipay` is Bank of Georgia (GEL, T3.5); `stripe`
+ * is the international card rail (USD, T3.6). The order records the provider it
+ * actually used, so a later region/config change can't rewrite its history.
+ */
+export const paymentProvider = pgEnum("payment_provider", ["ipay", "stripe"]);
+
+/** Money state of an order, driven by the payment webhook (T3.5/T3.6). */
+export const paymentStatus = pgEnum("payment_status", [
+  "pending",
+  "paid",
+  "failed",
+  "refunded",
+]);
+
+/** Physical state of an order, advanced by the admin (T3.8). */
+export const fulfillmentStatus = pgEnum("fulfillment_status", [
+  "pending",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+]);
+
+/**
+ * A placed order. Money columns are minor units in the order's single
+ * `currency` (the one it was paid in), computed once at checkout from cart-line
+ * snapshots — `total = subtotal + shippingCost + tax`. `cartId`/`userId` are
+ * nullable and set-null on delete so an order outlives the cart it came from and
+ * a deleted account: an order is a permanent record, not a live view.
+ *
+ * The shipping address is SNAPSHOTTED inline (`ship*`) rather than referenced,
+ * for the same reason cart lines snapshot prices — where an order shipped must
+ * not change when the customer later edits or removes a saved address (T3.7).
+ */
+export const orders = pgTable(
+  "order",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    cartId: text("cart_id").references(() => carts.id, { onDelete: "set null" }),
+    email: text("email").notNull(),
+    region: region("region").notNull(),
+    currency: currency("currency").notNull(),
+    subtotal: integer("subtotal").notNull(),
+    shippingCost: integer("shipping_cost").notNull().default(0),
+    tax: integer("tax").notNull().default(0),
+    total: integer("total").notNull(),
+    paymentProvider: paymentProvider("payment_provider").notNull(),
+    paymentStatus: paymentStatus("payment_status").notNull().default("pending"),
+    fulfillmentStatus: fulfillmentStatus("fulfillment_status")
+      .notNull()
+      .default("pending"),
+    shipName: text("ship_name").notNull(),
+    shipPhone: text("ship_phone"),
+    shipCountry: text("ship_country").notNull(),
+    shipCity: text("ship_city").notNull(),
+    shipLine1: text("ship_line1").notNull(),
+    shipLine2: text("ship_line2"),
+    shipPostalCode: text("ship_postal_code"),
+    trackingNumber: text("tracking_number"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("order_user_idx").on(t.userId),
+    // The admin orders list (T3.8) filters by these.
+    index("order_payment_status_idx").on(t.paymentStatus),
+    index("order_fulfillment_status_idx").on(t.fulfillmentStatus),
+  ],
+);
+
+/**
+ * Order lines. `nameSnapshot` and `unitPrice` (minor units, in the order's
+ * currency) are frozen at checkout, so the line still reads correctly after the
+ * product is renamed, repriced, or deleted (`productId` set-null on delete).
+ */
+export const orderItems = pgTable("order_item", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  orderId: text("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  productId: text("product_id").references(() => products.id, {
+    onDelete: "set null",
+  }),
+  nameSnapshot: text("name_snapshot").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: integer("unit_price").notNull(),
+  currency: currency("currency").notNull(),
+});
+
+export const ordersRelations = relations(orders, ({ many, one }) => ({
+  items: many(orderItems),
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  cart: one(carts, {
+    fields: [orders.cartId],
+    references: [carts.id],
+  }),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+}));
+
+export type Order = typeof orders.$inferSelect;
+export type NewOrder = typeof orders.$inferInsert;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type NewOrderItem = typeof orderItems.$inferInsert;
+
 export const shippingZonesRelations = relations(shippingZones, ({ many }) => ({
   rates: many(shippingRates),
 }));

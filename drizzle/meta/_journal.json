@@ -15,6 +15,13 @@
       "when": 1784202378389,
       "tag": "0001_shipping_zones_rates",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785310043372,
+      "tag": "0002_past_black_bolt",
+      "breakpoints": true
     }
   ]
 }
