@@ -3,12 +3,10 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import {
-  logRecoveryMailer,
-  makeOfferCode,
-} from "@/lib/abandoned-cart";
+import { makeOfferCode } from "@/lib/abandoned-cart";
 import { db } from "@/lib/db";
 import { abandonedCartEmails, carts } from "@/lib/db/schema";
+import { resendRecoveryMailer } from "@/lib/email/abandoned-cart";
 
 import { requireAdmin } from "./form";
 
@@ -40,7 +38,7 @@ export async function sendOfferEmail(formData: FormData): Promise<void> {
     await tx.insert(abandonedCartEmails).values({ cartId, offerCode });
   });
 
-  await logRecoveryMailer({ cartId, email: cart.email, offerCode });
+  await resendRecoveryMailer({ cartId, email: cart.email, offerCode });
 
   revalidatePath(`/${locale}/admin/abandoned-carts`);
 }

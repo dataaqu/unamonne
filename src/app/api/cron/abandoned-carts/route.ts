@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 
-import {
-  isAuthorizedCron,
-  logRecoveryMailer,
-  recoverAbandonedCarts,
-} from "@/lib/abandoned-cart";
+import { isAuthorizedCron, recoverAbandonedCarts } from "@/lib/abandoned-cart";
+import { resendRecoveryMailer } from "@/lib/email/abandoned-cart";
 
 /**
  * Vercel Cron entrypoint (scheduled in vercel.json). Vercel calls this hourly
@@ -24,7 +21,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const { recovered } = await recoverAbandonedCarts(
     new Date(),
-    logRecoveryMailer,
+    resendRecoveryMailer,
   );
 
   return NextResponse.json({ recovered });
