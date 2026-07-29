@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/admin/shipping", key: "shippingNav" },
   { href: "/admin/orders", key: "orders" },
   { href: "/admin/abandoned-carts", key: "abandonedNav" },
+  { href: "/admin/blog", key: "blogNav" },
 ] as const;
 
 export function AdminNav() {

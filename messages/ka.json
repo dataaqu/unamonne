@@ -91,6 +91,7 @@
     },
     "shippingNav": "მიწოდება",
     "abandonedNav": "მიტოვებული კალათები",
+    "blogNav": "ბლოგი",
     "shipping": {
       "title": "მიწოდების ზონები",
       "newZone": "ახალი ზონა",
@@ -174,6 +175,37 @@
       "emailedTimes": "გაგზავნილია {count, plural, one {# ჯერ} other {# ჯერ}}, ბოლო {when}",
       "send": "შეთავაზების გაგზავნა",
       "resend": "თავიდან გაგზავნა"
+    },
+    "blog": {
+      "title": "ბლოგი",
+      "newPost": "ახალი პოსტი",
+      "editPost": "პოსტის რედაქტირება",
+      "titleField": "სათაური",
+      "status": "სტატუსი",
+      "draft": "მონახაზი",
+      "published": "გამოქვეყნებული",
+      "seoScore": "SEO",
+      "cover": "ქავერ სურათი",
+      "excerpt": "მოკლე აღწერა",
+      "body": "ტექსტი (Markdown)",
+      "focusKeyword": "ფოკუს საკვანძო სიტყვა",
+      "seoTitle": "SEO სათაური",
+      "seoDescription": "მეტა აღწერა",
+      "seo": {
+        "score": "SEO ქულა",
+        "check": {
+          "keywordInTitle": "საკვანძო სიტყვა სათაურში",
+          "keywordInMetaDescription": "საკვანძო სიტყვა მეტა აღწერაში",
+          "keywordInSlug": "საკვანძო სიტყვა slug-ში",
+          "keywordInBody": "საკვანძო სიტყვა ტექსტში",
+          "titleLength": "SEO სათაური 30–60 სიმბოლო",
+          "metaDescriptionLength": "მეტა აღწერა 120–160 სიმბოლო",
+          "bodyLength": "ტექსტი მინიმუმ 300 სიტყვა",
+          "hasHeadings": "ტექსტში ქვესათაურებია",
+          "hasInternalLinks": "ტექსტში მინიმუმ ერთი ბმულია",
+          "hasOgImage": "ქავერ / OG სურათი მითითებულია"
+        }
+      }
     }
   },
   "Cart": {

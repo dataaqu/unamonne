@@ -91,6 +91,7 @@
     },
     "shippingNav": "Shipping",
     "abandonedNav": "Abandoned carts",
+    "blogNav": "Blog",
     "shipping": {
       "title": "Shipping zones",
       "newZone": "New zone",
@@ -174,6 +175,37 @@
       "emailedTimes": "Emailed {count, plural, one {# time} other {# times}}, last {when}",
       "send": "Send offer",
       "resend": "Send again"
+    },
+    "blog": {
+      "title": "Blog",
+      "newPost": "New post",
+      "editPost": "Edit post",
+      "titleField": "Title",
+      "status": "Status",
+      "draft": "Draft",
+      "published": "Published",
+      "seoScore": "SEO",
+      "cover": "Cover image",
+      "excerpt": "Excerpt",
+      "body": "Body (Markdown)",
+      "focusKeyword": "Focus keyword",
+      "seoTitle": "SEO title",
+      "seoDescription": "Meta description",
+      "seo": {
+        "score": "SEO score",
+        "check": {
+          "keywordInTitle": "Focus keyword in the title",
+          "keywordInMetaDescription": "Focus keyword in the meta description",
+          "keywordInSlug": "Focus keyword in the slug",
+          "keywordInBody": "Focus keyword in the body",
+          "titleLength": "SEO title is 30–60 characters",
+          "metaDescriptionLength": "Meta description is 120–160 characters",
+          "bodyLength": "Body is at least 300 words",
+          "hasHeadings": "Body uses subheadings",
+          "hasInternalLinks": "Body has at least one link",
+          "hasOgImage": "A cover / OG image is set"
+        }
+      }
     }
   },
   "Cart": {
