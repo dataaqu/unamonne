@@ -36,6 +36,13 @@
       "when": 1785312686448,
       "tag": "0004_sad_talisman",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785315213338,
+      "tag": "0005_luxuriant_scream",
+      "breakpoints": true
     }
   ]
 }
