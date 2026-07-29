@@ -1,4 +1,4 @@
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, desc, eq, lte, ne, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { abandonedCartEmails, cartItems, carts } from "@/lib/db/schema";
@@ -145,3 +145,45 @@ export async function recoverAbandonedCarts(
 
   return { recovered };
 }
+
+/** Whether a cart has already been sent at least one recovery email. */
+export function hasBeenEmailed(cart: { emails: unknown[] }): boolean {
+  return cart.emails.length > 0;
+}
+
+/**
+ * Narrow the admin list to emailed / not-yet-emailed carts. `undefined` means
+ * "no filter" and returns the list unchanged. Pure, so the toggle is testable
+ * without a database.
+ */
+export function filterByEmailed<T extends { emails: unknown[] }>(
+  carts: readonly T[],
+  emailed?: boolean,
+): T[] {
+  if (emailed === undefined) return [...carts];
+  return carts.filter((cart) => hasBeenEmailed(cart) === emailed);
+}
+
+/**
+ * Every cart the admin should see on the abandoned-cart screen (T4.5): any cart
+ * that still has items and has not converted to an order, newest activity
+ * first, with its lines (for display) and its email history. The "has items"
+ * filter is applied in JS because an empty non-converted cart is just noise.
+ */
+export async function findAbandonedCartsForAdmin() {
+  const rows = await db.query.carts.findMany({
+    where: ne(carts.status, "converted"),
+    with: {
+      items: {
+        with: { product: { with: { translations: true, images: true } } },
+      },
+      emails: true,
+    },
+    orderBy: [desc(carts.updatedAt)],
+  });
+  return rows.filter((cart) => cart.items.length > 0);
+}
+
+export type AdminAbandonedCart = Awaited<
+  ReturnType<typeof findAbandonedCartsForAdmin>
+>[number];

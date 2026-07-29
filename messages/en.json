@@ -90,6 +90,7 @@
       "required": "Required"
     },
     "shippingNav": "Shipping",
+    "abandonedNav": "Abandoned carts",
     "shipping": {
       "title": "Shipping zones",
       "newZone": "New zone",
@@ -159,6 +160,20 @@
         "delivered": "Delivered",
         "cancelled": "Cancelled"
       }
+    },
+    "abandoned": {
+      "title": "Abandoned carts",
+      "all": "All",
+      "emailed": "Emailed",
+      "notEmailed": "Not emailed",
+      "noCarts": "No abandoned carts.",
+      "noContact": "No contact email",
+      "idleSince": "Idle since {when}",
+      "itemCount": "{count, plural, one {# item} other {# items}}",
+      "notEmailedYet": "Not emailed yet.",
+      "emailedTimes": "Emailed {count, plural, one {# time} other {# times}}, last {when}",
+      "send": "Send offer",
+      "resend": "Send again"
     }
   },
   "Cart": {

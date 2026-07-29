@@ -90,6 +90,7 @@
       "required": "აუცილებელია"
     },
     "shippingNav": "მიწოდება",
+    "abandonedNav": "მიტოვებული კალათები",
     "shipping": {
       "title": "მიწოდების ზონები",
       "newZone": "ახალი ზონა",
@@ -159,6 +160,20 @@
         "delivered": "მიწოდებული",
         "cancelled": "გაუქმებული"
       }
+    },
+    "abandoned": {
+      "title": "მიტოვებული კალათები",
+      "all": "ყველა",
+      "emailed": "გაგზავნილი",
+      "notEmailed": "არ გაგზავნილა",
+      "noCarts": "მიტოვებული კალათა არ არის.",
+      "noContact": "საკონტაქტო ელფოსტა არ არის",
+      "idleSince": "უმოქმედო {when}-დან",
+      "itemCount": "{count, plural, one {# ნივთი} other {# ნივთი}}",
+      "notEmailedYet": "ჯერ არ გაგზავნილა.",
+      "emailedTimes": "გაგზავნილია {count, plural, one {# ჯერ} other {# ჯერ}}, ბოლო {when}",
+      "send": "შეთავაზების გაგზავნა",
+      "resend": "თავიდან გაგზავნა"
     }
   },
   "Cart": {

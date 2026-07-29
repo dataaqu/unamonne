@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 
 import {
   abandonmentCutoff,
+  filterByEmailed,
+  hasBeenEmailed,
   isAbandonmentCandidate,
 } from "@/lib/abandoned-cart";
 
@@ -49,5 +51,30 @@ describe("isAbandonmentCandidate", () => {
     expect(
       isAbandonmentCandidate({ ...base, updatedAt: hoursAgo(24) }, NOW, 24),
     ).toBe(true);
+  });
+});
+
+describe("hasBeenEmailed / filterByEmailed", () => {
+  const carts = [
+    { id: "a", emails: [{ id: "e1" }] },
+    { id: "b", emails: [] },
+    { id: "c", emails: [{ id: "e2" }, { id: "e3" }] },
+  ];
+
+  it("reports whether a cart has any recovery email", () => {
+    expect(hasBeenEmailed(carts[0])).toBe(true);
+    expect(hasBeenEmailed(carts[1])).toBe(false);
+  });
+
+  it("returns the list unchanged with no filter", () => {
+    expect(filterByEmailed(carts)).toHaveLength(3);
+  });
+
+  it("keeps only emailed carts when emailed=true", () => {
+    expect(filterByEmailed(carts, true).map((c) => c.id)).toEqual(["a", "c"]);
+  });
+
+  it("keeps only un-emailed carts when emailed=false", () => {
+    expect(filterByEmailed(carts, false).map((c) => c.id)).toEqual(["b"]);
   });
 });
