@@ -102,10 +102,9 @@ export default async function CartPage() {
         >
           {t("continueShopping")}
         </Link>
-        {/* Checkout lands in T3.5 (BoG iPay) / T3.6 (Stripe). */}
-        <button type="button" className={buttonVariants()} disabled>
+        <Link href="/checkout" className={buttonVariants()}>
           {t("checkout")}
-        </button>
+        </Link>
       </div>
     </main>
   );

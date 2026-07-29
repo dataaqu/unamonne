@@ -162,12 +162,32 @@ export function findOrdersForAdmin(filters: OrderFilters = {}) {
   });
 }
 
-/** One order with its lines, for the admin detail view. */
+/** One order with its lines, for the admin detail view and payment webhooks. */
 export function findOrderById(id: string) {
   return db.query.orders.findFirst({
     where: eq(orders.id, id),
     with: { items: true },
   });
+}
+
+/**
+ * Mark an order paid — the terminal success state a payment webhook drives
+ * (T3.5/T3.6). Idempotent by nature: a provider may deliver the same event more
+ * than once, and re-setting `paid` is harmless.
+ */
+export async function markOrderPaid(orderId: string): Promise<void> {
+  await db
+    .update(orders)
+    .set({ paymentStatus: "paid", updatedAt: new Date() })
+    .where(eq(orders.id, orderId));
+}
+
+/** Mark an order's payment failed (webhook reported a decline/cancel). */
+export async function markOrderFailed(orderId: string): Promise<void> {
+  await db
+    .update(orders)
+    .set({ paymentStatus: "failed", updatedAt: new Date() })
+    .where(eq(orders.id, orderId));
 }
 
 export type ShippingAddressInput = {

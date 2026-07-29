@@ -197,6 +197,29 @@
       "UNKNOWN": "Something went wrong. Please try again."
     }
   },
+  "Checkout": {
+    "title": "Checkout",
+    "summary": "Order summary",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "shippingNote": "Shipping is calculated from your address on the next step.",
+    "email": "Email",
+    "emailInvalid": "Enter a valid email.",
+    "shippingAddress": "Shipping address",
+    "pay": "Continue to payment",
+    "paying": "Redirecting…",
+    "orderNumber": "Order {id}",
+    "continue": "Continue shopping",
+    "errors": {
+      "EMPTY": "Your cart is empty.",
+      "NO_SHIPPING": "We can't ship to that country yet.",
+      "PAYMENT_FAILED": "We couldn't start the payment. Please try again.",
+      "UNKNOWN": "Something went wrong. Please try again."
+    },
+    "success": {
+      "title": "Thank you for your order",
+      "body": "Your payment is being confirmed. A confirmation email is on its way."
+    }
+  },
   "Account": {
     "title": "Account",
     "profile": "Profile",
