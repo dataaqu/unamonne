@@ -9,6 +9,8 @@
  * merchant account exists. The payload builder and callback parser are pure and
  * unit-tested.
  */
+import crypto from "node:crypto";
+
 const BOG_AUTH_URL =
   "https://oauth2.bog.ge/auth/realms/bog/protocol/openid-connect/token";
 const BOG_ORDERS_URL = "https://api.bog.ge/payments/v1/ecommerce/orders";
@@ -94,6 +96,33 @@ export function parseBogCallback(payload: unknown): {
     "";
   const externalOrderId = (data.external_order_id as string) ?? "";
   return { externalOrderId, paid: status === "completed" };
+}
+
+/**
+ * Verify a BoG callback before trusting a single byte of it. BoG signs the raw
+ * request body with RSA-SHA256; the signature arrives in the `Callback-Signature`
+ * header (base64) and is checked against BoG's published public key
+ * (BOG_CALLBACK_PUBLIC_KEY, PEM). Fails closed: no configured key, no signature,
+ * or a bad signature all return false, so the webhook rejects the request and
+ * never mutates an order. This is the auth boundary for a money-moving endpoint.
+ */
+export function verifyBogCallback(
+  rawBody: string,
+  signature: string | null,
+): boolean {
+  const pem = process.env.BOG_CALLBACK_PUBLIC_KEY;
+  if (!pem || !signature) return false;
+
+  try {
+    return crypto.verify(
+      "RSA-SHA256",
+      Buffer.from(rawBody, "utf8"),
+      pem.replace(/\\n/g, "\n"),
+      Buffer.from(signature, "base64"),
+    );
+  } catch {
+    return false;
+  }
 }
 
 function credentials(): { id: string; secret: string } {

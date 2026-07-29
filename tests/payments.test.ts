@@ -1,8 +1,11 @@
-import { describe, it, expect } from "vitest";
+import crypto from "node:crypto";
+
+import { afterEach, describe, it, expect } from "vitest";
 
 import {
   buildBogOrderPayload,
   parseBogCallback,
+  verifyBogCallback,
   type BogOrderInput,
 } from "@/lib/payments/bog";
 import { paymentProviderForRegion } from "@/lib/payments/provider";
@@ -57,6 +60,37 @@ describe("buildBogOrderPayload", () => {
       failUrl: "x",
     });
     expect(payload.purchase_units.basket[0].product_id).toBe("oi1");
+  });
+});
+
+describe("verifyBogCallback (fails closed)", () => {
+  const original = process.env.BOG_CALLBACK_PUBLIC_KEY;
+  afterEach(() => {
+    if (original === undefined) delete process.env.BOG_CALLBACK_PUBLIC_KEY;
+    else process.env.BOG_CALLBACK_PUBLIC_KEY = original;
+  });
+
+  it("rejects when no public key is configured", () => {
+    delete process.env.BOG_CALLBACK_PUBLIC_KEY;
+    expect(verifyBogCallback("{}", "c2ln")).toBe(false);
+  });
+
+  it("verifies a genuine signature and rejects a tampered body", () => {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    });
+    process.env.BOG_CALLBACK_PUBLIC_KEY = publicKey
+      .export({ type: "spki", format: "pem" })
+      .toString();
+
+    const body = JSON.stringify({ body: { external_order_id: "order-1" } });
+    const signature = crypto
+      .sign("RSA-SHA256", Buffer.from(body, "utf8"), privateKey)
+      .toString("base64");
+
+    expect(verifyBogCallback(body, signature)).toBe(true);
+    expect(verifyBogCallback(body + " ", signature)).toBe(false);
+    expect(verifyBogCallback(body, null)).toBe(false);
   });
 });
 

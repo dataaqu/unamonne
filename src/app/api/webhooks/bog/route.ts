@@ -2,18 +2,33 @@ import { NextResponse } from "next/server";
 
 import { sendOrderConfirmation } from "@/lib/email/order-confirmation";
 import { findOrderById, markOrderFailed, markOrderPaid } from "@/lib/orders";
-import { parseBogCallback } from "@/lib/payments/bog";
+import { parseBogCallback, verifyBogCallback } from "@/lib/payments/bog";
 
 /**
  * Bank of Georgia payment callback. BoG POSTs the settled order here; we map it
  * back to our order via `external_order_id` and move payment_status. A paid
  * order also triggers the confirmation email.
  *
- * NOTE: production should also verify BoG's `Callback-Signature` header against
- * their public key before trusting the body; wired once the key is provisioned.
+ * The body is verified against BoG's signature BEFORE any state change — this
+ * endpoint moves money, so it fails closed: an unsigned/unverifiable request
+ * (including before BOG_CALLBACK_PUBLIC_KEY is provisioned) is rejected and
+ * mutates nothing. The exact raw bytes are used for verification, then parsed.
  */
 export async function POST(request: Request): Promise<NextResponse> {
-  const payload = await request.json().catch(() => null);
+  const raw = await request.text();
+  const signature = request.headers.get("callback-signature");
+
+  if (!verifyBogCallback(raw, signature)) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    return new NextResponse("Bad Request", { status: 400 });
+  }
+
   const { externalOrderId, paid } = parseBogCallback(payload);
 
   if (!externalOrderId) {
