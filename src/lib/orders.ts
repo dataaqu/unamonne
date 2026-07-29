@@ -1,8 +1,9 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import type { CartLine, CartWithItems } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { carts, orderItems, orders } from "@/lib/db/schema";
+import type { OrderFilters } from "@/lib/admin/order-schema";
 import type { Region } from "@/lib/region";
 import {
   currencyForRegion,
@@ -137,6 +138,36 @@ export function ownsOrder(
   userId: string,
 ): boolean {
   return order.userId !== null && order.userId === userId;
+}
+
+/**
+ * The admin orders list, newest first, optionally narrowed by payment and/or
+ * fulfillment status (T3.8). Both filters combine with AND; no filter returns
+ * every order.
+ */
+export function findOrdersForAdmin(filters: OrderFilters = {}) {
+  const conditions = [
+    filters.paymentStatus
+      ? eq(orders.paymentStatus, filters.paymentStatus)
+      : undefined,
+    filters.fulfillmentStatus
+      ? eq(orders.fulfillmentStatus, filters.fulfillmentStatus)
+      : undefined,
+  ].filter((c) => c !== undefined);
+
+  return db.query.orders.findMany({
+    where: conditions.length > 0 ? and(...conditions) : undefined,
+    with: { items: true },
+    orderBy: [desc(orders.createdAt)],
+  });
+}
+
+/** One order with its lines, for the admin detail view. */
+export function findOrderById(id: string) {
+  return db.query.orders.findFirst({
+    where: eq(orders.id, id),
+    with: { items: true },
+  });
 }
 
 export type ShippingAddressInput = {

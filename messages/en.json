@@ -110,6 +110,55 @@
       "isFallback": "Fallback zone",
       "noRates": "No rates set",
       "noFallbackWarning": "No fallback zone is set. Orders to a country that no zone lists will have no shipping price."
+    },
+    "order": {
+      "title": "Orders",
+      "filterPayment": "Payment",
+      "filterFulfillment": "Fulfillment",
+      "all": "All",
+      "apply": "Apply",
+      "noOrders": "No orders match.",
+      "number": "Order",
+      "orderNumber": "Order {id}",
+      "date": "Date",
+      "customer": "Customer",
+      "payment": "Payment",
+      "fulfillment": "Fulfillment",
+      "total": "Total",
+      "actions": "Actions",
+      "view": "View",
+      "back": "Back to orders",
+      "item": "Item",
+      "qty": "Qty",
+      "unitPrice": "Unit price",
+      "lineTotal": "Line total",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "shipTo": "Ship to",
+      "updateFulfillment": "Update fulfillment",
+      "tracking": "Tracking number",
+      "trackingHint": "Carrier tracking number",
+      "saved": "Saved.",
+      "save": "Save",
+      "saving": "Saving…",
+      "provider": {
+        "ipay": "Bank of Georgia",
+        "stripe": "Stripe"
+      },
+      "paymentStatus": {
+        "pending": "Pending",
+        "paid": "Paid",
+        "failed": "Failed",
+        "refunded": "Refunded"
+      },
+      "fulfillmentStatus": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      }
     }
   },
   "Cart": {

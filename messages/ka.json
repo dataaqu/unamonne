@@ -110,6 +110,55 @@
       "isFallback": "სარეზერვო ზონა",
       "noRates": "ტარიფი არ არის",
       "noFallbackWarning": "სარეზერვო ზონა არ არის მითითებული. შეკვეთებს იმ ქვეყნებში, რომლებიც არცერთ ზონაშია, მიწოდების ფასი არ ექნება."
+    },
+    "order": {
+      "title": "შეკვეთები",
+      "filterPayment": "გადახდა",
+      "filterFulfillment": "შესრულება",
+      "all": "ყველა",
+      "apply": "გაფილტვრა",
+      "noOrders": "შესაბამისი შეკვეთა არ არის.",
+      "number": "შეკვეთა",
+      "orderNumber": "შეკვეთა {id}",
+      "date": "თარიღი",
+      "customer": "მომხმარებელი",
+      "payment": "გადახდა",
+      "fulfillment": "შესრულება",
+      "total": "სულ",
+      "actions": "მოქმედებები",
+      "view": "ნახვა",
+      "back": "შეკვეთებზე დაბრუნება",
+      "item": "ნივთი",
+      "qty": "რაოდ.",
+      "unitPrice": "ერთეულის ფასი",
+      "lineTotal": "ჯამი",
+      "subtotal": "ქვეჯამი",
+      "shipping": "მიწოდება",
+      "tax": "გადასახადი",
+      "shipTo": "მიწოდების მისამართი",
+      "updateFulfillment": "შესრულების განახლება",
+      "tracking": "თრექინგის ნომერი",
+      "trackingHint": "გადამზიდავის თრექინგის ნომერი",
+      "saved": "შენახულია.",
+      "save": "შენახვა",
+      "saving": "ინახება…",
+      "provider": {
+        "ipay": "საქართველოს ბანკი",
+        "stripe": "Stripe"
+      },
+      "paymentStatus": {
+        "pending": "მოლოდინში",
+        "paid": "გადახდილი",
+        "failed": "ჩაიშალა",
+        "refunded": "დაბრუნებული"
+      },
+      "fulfillmentStatus": {
+        "pending": "მოლოდინში",
+        "processing": "მუშავდება",
+        "shipped": "გაგზავნილი",
+        "delivered": "მიწოდებული",
+        "cancelled": "გაუქმებული"
+      }
     }
   },
   "Cart": {
