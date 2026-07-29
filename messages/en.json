@@ -17,6 +17,11 @@
     "outOfStock": "Out of stock",
     "inStock": "In stock"
   },
+  "Blog": {
+    "title": "Journal",
+    "empty": "No posts yet.",
+    "back": "Back to the journal"
+  },
   "LanguageSwitcher": {
     "label": "Language",
     "ka": "ქართული",
