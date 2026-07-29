@@ -33,6 +33,7 @@
     "login": "Sign in",
     "register": "Sign up",
     "logout": "Sign out",
+    "account": "Account",
     "submitting": "Please wait…",
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
@@ -130,6 +131,56 @@
       "NOT_FOUND": "This product is no longer available.",
       "OUT_OF_STOCK": "This product is out of stock.",
       "UNKNOWN": "Something went wrong. Please try again."
+    }
+  },
+  "Account": {
+    "title": "Account",
+    "profile": "Profile",
+    "addresses": "Addresses",
+    "orders": "Orders",
+    "profileTitle": "Profile",
+    "email": "Email",
+    "name": "Name",
+    "preferences": "Preferences",
+    "preferencesHint": "Your region and language are remembered across the site.",
+    "addressesTitle": "Saved addresses",
+    "newAddress": "Add address",
+    "editAddress": "Edit address",
+    "noAddresses": "You haven't saved any addresses yet.",
+    "default": "Default",
+    "makeDefault": "Make default",
+    "setAsDefault": "Set as default address",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "required": "Required",
+    "countryInvalid": "Use a two-letter country code, e.g. GE.",
+    "field": {
+      "fullName": "Full name",
+      "phone": "Phone",
+      "country": "Country",
+      "city": "City",
+      "line1": "Address",
+      "line2": "Address line 2",
+      "postalCode": "Postal code"
+    },
+    "ordersTitle": "Order history",
+    "noOrders": "You have no orders yet.",
+    "orderNumber": "Order {id}",
+    "paymentStatus": {
+      "pending": "Payment pending",
+      "paid": "Paid",
+      "failed": "Payment failed",
+      "refunded": "Refunded"
+    },
+    "fulfillmentStatus": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     }
   }
 }

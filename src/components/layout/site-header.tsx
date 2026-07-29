@@ -37,6 +37,12 @@ export async function SiteHeader() {
                   Admin
                 </Link>
               ) : null}
+              <Link
+                href="/account"
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
+                {t("account")}
+              </Link>
               <LogoutButton />
             </div>
           ) : (

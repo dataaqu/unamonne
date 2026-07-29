@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import type { CartLine, CartWithItems } from "@/lib/cart";
 import { db } from "@/lib/db";
@@ -114,6 +114,29 @@ export function orderLinesFromCart(
     unitPriceGel: line.unitPriceGel,
     unitPriceUsd: line.unitPriceUsd,
   }));
+}
+
+/**
+ * A customer's order history, newest first, with lines. Scoped to `userId` in
+ * the query, so it can only ever return that user's own orders (T3.7).
+ */
+export function findOrdersByUser(userId: string) {
+  return db.query.orders.findMany({
+    where: eq(orders.userId, userId),
+    with: { items: true },
+    orderBy: [desc(orders.createdAt)],
+  });
+}
+
+/**
+ * Ownership guard for a single order (order-detail pages). Guest orders
+ * (`userId` null) belong to nobody and are never "owned" by a signed-in user.
+ */
+export function ownsOrder(
+  order: { userId: string | null },
+  userId: string,
+): boolean {
+  return order.userId !== null && order.userId === userId;
 }
 
 export type ShippingAddressInput = {

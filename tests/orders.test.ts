@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 
-import { buildOrderDraft, type OrderDraftLine } from "@/lib/orders";
+import {
+  buildOrderDraft,
+  ownsOrder,
+  type OrderDraftLine,
+} from "@/lib/orders";
 
 const lines: OrderDraftLine[] = [
   {
@@ -66,5 +70,16 @@ describe("buildOrderDraft", () => {
     expect(() =>
       buildOrderDraft({ lines: [], region: "GE", shippingCost: 0 }),
     ).toThrow();
+  });
+});
+
+describe("ownsOrder", () => {
+  it("is true only for the order's own user", () => {
+    expect(ownsOrder({ userId: "u1" }, "u1")).toBe(true);
+    expect(ownsOrder({ userId: "u1" }, "u2")).toBe(false);
+  });
+
+  it("treats a guest order as owned by nobody", () => {
+    expect(ownsOrder({ userId: null }, "u1")).toBe(false);
   });
 });
