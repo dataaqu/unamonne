@@ -94,6 +94,7 @@ export const cartItems = pgTable(
 
 export const cartsRelations = relations(carts, ({ many, one }) => ({
   items: many(cartItems),
+  emails: many(abandonedCartEmails),
   user: one(users, {
     fields: [carts.userId],
     references: [users.id],
@@ -115,6 +116,40 @@ export type Cart = typeof carts.$inferSelect;
 export type NewCart = typeof carts.$inferInsert;
 export type CartItem = typeof cartItems.$inferSelect;
 export type NewCartItem = typeof cartItems.$inferInsert;
+
+/**
+ * A log of abandoned-cart recovery emails (T4.2/T4.4). One row per send, so the
+ * cron (T4.3) can tell an already-contacted cart from a fresh one and never
+ * email the same cart twice, and the admin (T4.5) can see the contact history.
+ * `offerCode` records the discount code the email carried, if any.
+ */
+export const abandonedCartEmails = pgTable(
+  "abandoned_cart_email",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    cartId: text("cart_id")
+      .notNull()
+      .references(() => carts.id, { onDelete: "cascade" }),
+    sentAt: timestamp("sent_at", { mode: "date" }).notNull().defaultNow(),
+    offerCode: text("offer_code"),
+  },
+  (t) => [index("abandoned_cart_email_cart_idx").on(t.cartId)],
+);
+
+export const abandonedCartEmailsRelations = relations(
+  abandonedCartEmails,
+  ({ one }) => ({
+    cart: one(carts, {
+      fields: [abandonedCartEmails.cartId],
+      references: [carts.id],
+    }),
+  }),
+);
+
+export type AbandonedCartEmail = typeof abandonedCartEmails.$inferSelect;
+export type NewAbandonedCartEmail = typeof abandonedCartEmails.$inferInsert;
 
 /**
  * Shipping destinations. A zone is matched by ISO-3166 alpha-2 country code;

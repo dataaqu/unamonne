@@ -29,6 +29,13 @@
       "when": 1785310990110,
       "tag": "0003_daily_edwin_jarvis",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785312686448,
+      "tag": "0004_sad_talisman",
+      "breakpoints": true
     }
   ]
 }
