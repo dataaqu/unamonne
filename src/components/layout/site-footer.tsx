@@ -5,7 +5,6 @@ import { InstagramIcon } from "@/components/ui/icons";
 import { Link } from "@/i18n/navigation";
 import { BRAND } from "@/lib/brand";
 import { pickTranslation } from "@/lib/catalog";
-import { CURRENCY, getRegion } from "@/lib/region";
 import { getVisibleCategories } from "@/lib/shop";
 
 export type FooterVariant = "full" | "slim";
@@ -34,25 +33,21 @@ export async function SiteFooter({
 }: {
   variant?: FooterVariant;
 }) {
-  const [t, locale, region] = await Promise.all([
+  const [t, locale] = await Promise.all([
     getTranslations("Footer"),
     getLocale(),
-    getRegion(),
   ]);
 
+  // Read at render, not written into the source, so the notice ages with the
+  // shop rather than with the commit that last touched this file.
   const year = new Date().getFullYear();
-  const rail = `${CURRENCY[region].symbol} ${CURRENCY[region].code} · ${t(
-    region === "GE" ? "railGe" : "railIntl",
-  )}`;
+  const notice = `© ${year} ${BRAND.legalName} · ${BRAND.city} · ${t("rights")}`;
 
   if (variant === "slim") {
     return (
       <footer className="mt-auto bg-ink-900 px-6 py-10 text-ink-300 lg:px-10">
-        <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-4 text-xs">
-          <span>
-            © {year} {BRAND.legalName} · {BRAND.city}
-          </span>
-          <span className="tabular-nums">{rail}</span>
+        <div className="mx-auto w-full max-w-[1600px] text-center text-xs">
+          {notice}
         </div>
       </footer>
     );
@@ -162,11 +157,8 @@ export async function SiteFooter({
         </div>
       </div>
 
-      <div className="mx-auto mt-12 flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-4 border-t border-ink-800 pt-6 text-xs text-ink-500">
-        <span>
-          © {year} {BRAND.legalName} · {BRAND.city}
-        </span>
-        <span className="tabular-nums">{rail}</span>
+      <div className="mx-auto mt-12 w-full max-w-[1600px] border-t border-ink-800 pt-6 text-center text-xs text-ink-500">
+        {notice}
       </div>
     </footer>
   );
