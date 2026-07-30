@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { JsonLd } from "@/components/seo/json-ld";
+import { ScrollMotion } from "@/components/motion/scroll-motion";
 import { ProductCard } from "@/components/shop/product-card";
 import { SortSelect } from "@/components/shop/sort-select";
 import { ArrowLink } from "@/components/ui/btn";
@@ -166,7 +167,10 @@ export default async function CategoryPage({
           <p className="mt-10 text-sm text-ink-500">{t("noProducts")}</p>
         ) : (
           <>
-            <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-3">
+            <div
+              data-rise-group
+              className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-3"
+            >
               {result.items.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -191,6 +195,7 @@ export default async function CategoryPage({
           </>
         )}
       </div>
+      <ScrollMotion />
     </SiteChrome>
   );
 }

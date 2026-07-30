@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { useTranslations } from "next-intl";
 
 import { CloseIcon, SearchIcon } from "@/components/ui/icons";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+gsap.registerPlugin(useGSAP);
+
 /**
  * Header search. Collapsed to an icon until asked for, then a single line that
  * submits to /shop?q= — the catalog page already filters on `q`, so a search is
  * a shareable URL rather than a modal with its own result list.
+ *
+ * It opens the way the house draws everything else: a rule pulls out from under
+ * the icon and the field arrives on it. The icon itself does not move — it sits
+ * at the end of the header row, and the line grows to its left, so the account
+ * and the bag stay exactly where the hand left them.
  */
 export function SearchBox({
   tone = "dark",
@@ -23,20 +32,52 @@ export function SearchBox({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(initialQuery);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
+  const field = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const glass = useRef<HTMLSpanElement>(null);
+  const cross = useRef<HTMLSpanElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  useGSAP(
+    () => {
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const width = open ? (window.innerWidth < 640 ? 148 : 196) : 0;
+      const time = still ? 0 : 0.42;
+
+      gsap.to(field.current, {
+        width,
+        duration: time,
+        ease: "power3.inOut",
+      });
+      // Opacity, not autoAlpha: autoAlpha hides visibility, and a hidden input
+      // cannot take focus — the caret would land nowhere.
+      gsap.to(input.current, {
+        opacity: open ? 1 : 0,
+        duration: still ? 0 : 0.3,
+        delay: open && !still ? 0.12 : 0,
+      });
+
+      // One button, two faces: the glass turns out as the cross turns in.
+      gsap.to(glass.current, {
+        autoAlpha: open ? 0 : 1,
+        rotate: open ? -90 : 0,
+        duration: time,
+        ease: "power3.inOut",
+      });
+      gsap.to(cross.current, {
+        autoAlpha: open ? 1 : 0,
+        rotate: open ? 0 : 90,
+        duration: time,
+        ease: "power3.inOut",
+      });
+
+      // The field is taken out of the accessibility tree when it closes, so the
+      // caret must not be left sitting inside it.
+      if (open) input.current?.focus();
+      else input.current?.blur();
+    },
+    { dependencies: [open] },
+  );
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -50,49 +91,52 @@ export function SearchBox({
       ? "text-ink-700 hover:text-ink-900"
       : "text-ink-50 hover:opacity-75";
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={t("search")}
-        className={cn("transition-opacity", iconTone)}
-      >
-        <SearchIcon />
-      </button>
-    );
-  }
-
   return (
     <form
       onSubmit={submit}
       role="search"
-      className={cn(
-        "flex items-center gap-2 border-b pb-1",
-        tone === "dark" ? "border-ink-300" : "border-ink-50/50",
-      )}
+      className="flex items-center gap-2"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") setOpen(false);
+      }}
     >
-      <SearchIcon className={cn("h-4 w-4", iconTone)} />
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        placeholder={t("searchPlaceholder")}
-        aria-label={t("search")}
+      <div
+        ref={field}
         className={cn(
-          "w-32 border-0 bg-transparent p-0 text-xs focus:outline-none sm:w-44",
-          tone === "dark"
-            ? "text-ink-900 placeholder:text-ink-400"
-            : "text-ink-50 placeholder:text-ink-200",
+          "w-0 overflow-hidden border-b pb-1",
+          tone === "dark" ? "border-ink-300" : "border-ink-50/50",
         )}
-      />
+      >
+        <input
+          ref={input}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder={t("searchPlaceholder")}
+          aria-label={t("search")}
+          tabIndex={open ? 0 : -1}
+          aria-hidden={!open}
+          className={cn(
+            "w-[140px] border-0 bg-transparent p-0 text-xs opacity-0 focus:outline-none sm:w-[188px]",
+            tone === "dark"
+              ? "text-ink-900 placeholder:text-ink-400"
+              : "text-ink-50 placeholder:text-ink-200",
+          )}
+        />
+      </div>
+
       <button
         type="button"
-        onClick={() => setOpen(false)}
-        aria-label={t("closeSearch")}
-        className={iconTone}
+        onClick={() => setOpen(!open)}
+        aria-label={open ? t("closeSearch") : t("search")}
+        aria-expanded={open}
+        className={cn("relative block h-5 w-5 transition-opacity", iconTone)}
       >
-        <CloseIcon className="h-4 w-4" />
+        <span ref={glass} className="absolute inset-0 block">
+          <SearchIcon />
+        </span>
+        <span ref={cross} className="absolute inset-0 block opacity-0">
+          <CloseIcon />
+        </span>
       </button>
     </form>
   );

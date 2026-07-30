@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { FilterDrawer } from "@/components/shop/filter-drawer";
+import { ScrollMotion } from "@/components/motion/scroll-motion";
 import { ProductCard } from "@/components/shop/product-card";
 import { ShopFilters } from "@/components/shop/shop-filters";
 import { SortSelect } from "@/components/shop/sort-select";
@@ -182,7 +183,10 @@ export default async function ShopPage({
               />
             ) : (
               <>
-                <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-3">
+                <div
+                  data-rise-group
+                  className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-3"
+                >
                   {result.items.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -214,6 +218,7 @@ export default async function ShopPage({
           </div>
         </div>
       </div>
+      <ScrollMotion />
     </SiteChrome>
   );
 }

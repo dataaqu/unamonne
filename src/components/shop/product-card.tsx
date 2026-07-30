@@ -60,7 +60,7 @@ export async function ProductCard({
               src={image.url}
               alt={image.alt ?? tr?.name ?? ""}
               className={cn(
-                "w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]",
+                "w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]",
                 imageClassName,
                 available ? "" : "opacity-55 grayscale",
               )}
@@ -101,9 +101,13 @@ export async function ProductCard({
       <div className="mt-3.5 flex items-baseline justify-between gap-3">
         <Link
           href={href}
-          className="text-[11px] uppercase tracking-[0.16em] text-ink-900"
+          className="group/name relative text-[11px] uppercase tracking-[0.16em] text-ink-900"
         >
           {tr?.name ?? "—"}
+          <span
+            aria-hidden
+            className="absolute -bottom-0.5 left-0 block h-px w-full origin-left scale-x-0 bg-ink-900 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100"
+          />
         </Link>
         {available ? (
           <span className="text-sm tabular-nums">
