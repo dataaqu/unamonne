@@ -67,34 +67,34 @@ export async function SiteHeader({
     );
   }
 
-  // The transparent header floats over the campaign image instead of sitting
-  // on a bar of its own. It is only a position: the type stays cocoa there too,
-  // so the house reads the same on every page.
-  const floating = variant === "transparent";
+  const light = variant === "transparent";
   const categories = await loadCategories(locale);
 
   const navLink = (active: boolean) =>
     cn(
       "border-b pb-0.5 transition-colors",
-      active
-        ? "border-ink-900 text-ink-900"
-        : "border-transparent hover:border-ink-900 hover:text-ink-900",
+      light
+        ? active
+          ? "border-ink-50"
+          : "border-transparent hover:border-ink-50"
+        : active
+          ? "border-ink-900 text-ink-900"
+          : "border-transparent hover:border-ink-900 hover:text-ink-900",
     );
 
   return (
     <header
       className={cn(
-        "text-ink-900",
-        floating
-          ? "absolute inset-x-0 top-0 z-30"
-          : "sticky top-0 z-30 border-b border-ink-200 bg-ink-100/95 backdrop-blur",
+        light
+          ? "absolute inset-x-0 top-0 z-30 text-ink-50"
+          : "sticky top-0 z-30 border-b border-ink-200 bg-ink-100/95 text-ink-900 backdrop-blur",
       )}
     >
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-6 px-6 py-5 lg:px-10">
         <nav
           className={cn(
             "hidden items-center gap-7 text-[11px] uppercase tracking-[0.18em] md:flex",
-            "text-ink-700",
+            light ? "text-ink-50" : "text-ink-700",
           )}
         >
           <Link href="/shop" className={navLink(section === "shop")}>
@@ -131,32 +131,37 @@ export async function SiteHeader({
           </Link>
         </nav>
 
-        <BrandMark size={floating ? "md" : "sm"} animate />
+        {/* The name stays cocoa even where the rest of the header inverts:
+            the logotype is the one thing on the page that is never restyled. */}
+        <BrandMark size={light ? "md" : "sm"} animate />
 
         <div
           className={cn(
             "flex items-center gap-4",
-            "text-ink-700",
+            light ? "text-ink-50" : "text-ink-700",
           )}
         >
           <div className="hidden sm:block">
-            <CurrencyToggle />
+            <CurrencyToggle tone={light ? "light" : "dark"} />
           </div>
           <div className="hidden sm:block">
-            <LocaleMenu />
+            <LocaleMenu tone={light ? "light" : "dark"} />
           </div>
-          <SearchBox initialQuery={searchQuery} />
+          <SearchBox
+            tone={light ? "light" : "dark"}
+            initialQuery={searchQuery}
+          />
           <Link
             href="/account"
             aria-label={t("account")}
             className={cn(
               "hidden sm:block",
-              "hover:text-ink-900",
+              light ? "hover:opacity-75" : "hover:text-ink-900",
             )}
           >
             <UserIcon />
           </Link>
-          <Bag />
+          <Bag tone={light ? "light" : "dark"} />
         </div>
       </div>
     </header>
