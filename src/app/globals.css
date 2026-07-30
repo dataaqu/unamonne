@@ -194,23 +194,60 @@
   --sidebar-ring: #b3a7a3;
 }
 
+/* ------------------------------------------------------------------ *
+ * Type weights
+ *
+ * Three cuts of the house face, each with one job:
+ *
+ *   300 Light   prose. Body copy, descriptions, everything a reader reads in
+ *               sentences. The lighter cut gives the page air and lets a
+ *               heading carry the hierarchy without having to shout.
+ *   400 Roman   labels. Buttons, nav, micro-labels, form fields, anything set
+ *               in small tracked capitals — the light cut goes to pieces at
+ *               10px, and Georgian letterforms suffer first.
+ *   500 Medium  headings, and the words that are the point of a sentence.
+ *
+ * The house still owns no bold: 500 against 300 is contrast enough at display
+ * size, and 700 would read as a different brand.
+ * ------------------------------------------------------------------ */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-ink-100 text-ink-900 antialiased;
+    font-weight: 300;
   }
   html {
     @apply font-sans;
   }
-  /* Regular everywhere. No bold in the interface. */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
+    font-weight: 500;
+  }
+  strong,
+  b {
+    font-weight: 500;
+  }
+  /* Every uppercase run in this system is a small tracked label; there is not
+     one at display size. They all take the roman cut. */
+  .uppercase {
+    font-weight: 400;
+  }
+  /* Figures set in tabular numerals are prices, totals, quantities and order
+     references — data to be read rather than prose to be scanned, and a price
+     is the last thing on a shop that should look faint. */
+  .tabular-nums {
+    font-weight: 400;
+  }
+  input,
+  select,
+  textarea,
+  button {
     font-weight: 400;
   }
 }
