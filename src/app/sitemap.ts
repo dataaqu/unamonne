@@ -6,6 +6,7 @@ import { findPublishedPosts } from "@/lib/blog";
 import { db } from "@/lib/db";
 import { appUrl } from "@/lib/email/client";
 import { products } from "@/lib/db/schema";
+import { homeUrl } from "@/lib/seo/metadata";
 
 // Needs the database for posts/products; don't try to prerender at build.
 export const dynamic = "force-dynamic";
@@ -53,7 +54,12 @@ function localizedEntry(
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const entries: Entry[] = ["", "/shop", "/blog"].map(staticEntry);
+  // The home page has no locale in its address and so no hreflang pair; the
+  // rest of the static routes do.
+  const entries: Entry[] = [
+    { url: homeUrl() },
+    ...["/shop", "/blog"].map(staticEntry),
+  ];
 
   // The database may not be provisioned yet — the static routes above are still
   // a valid sitemap, so a failure here degrades rather than breaks the route.

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 import { SiteChrome } from "@/components/layout/site-chrome";
@@ -7,20 +7,22 @@ import { ScrollMotion } from "@/components/motion/scroll-motion";
 import { ProductCard } from "@/components/shop/product-card";
 import { ArrowLink } from "@/components/ui/btn";
 import { Link } from "@/i18n/navigation";
+import type { Locale } from "@/i18n/routing";
 import {
   findPublishedPosts,
   pickTranslation as pickPost,
   readingMinutes,
 } from "@/lib/blog";
 import { getRegion } from "@/lib/region";
-import { localizedAlternates } from "@/lib/seo/metadata";
+import { homeUrl } from "@/lib/seo/metadata";
 import { getSettings } from "@/lib/settings";
 import { getCategoryCards, getVisibleProducts } from "@/lib/shop";
 import { getSavedProductIds } from "@/lib/wishlist";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
-  return { alternates: localizedAlternates(locale, "") };
+  // Both languages are served from `/`, so the home page has one address and
+  // no hreflang pair to point at a second one.
+  return { alternates: { canonical: homeUrl() } };
 }
 
 /**
@@ -36,13 +38,23 @@ async function safely<T>(load: () => Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-export default async function Home() {
-  const [t, tNews, tShop, tBlog, locale, region] = await Promise.all([
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  // `/` reaches this page through a rewrite, so the locale header the proxy
+  // normally leaves behind is not there. The segment is the source of truth
+  // here, and it has to be declared before anything reads a translation —
+  // a page can start rendering before the layout that wraps it.
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const [t, tNews, tShop, tBlog, region] = await Promise.all([
     getTranslations("HomePage"),
     getTranslations("Newsletter"),
     getTranslations("Shop"),
     getTranslations("Blog"),
-    getLocale(),
     getRegion(),
   ]);
 

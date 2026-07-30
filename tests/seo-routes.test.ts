@@ -37,8 +37,13 @@ describe("sitemap", () => {
     const entries = await sitemap();
     expect(entries).toHaveLength(3);
     expect(entries.some((e) => e.url.endsWith("/shop"))).toBe(true);
-    // Every entry carries hreflang alternates.
-    for (const entry of entries) {
+
+    // The home page is one address in both languages, so it has no hreflang
+    // pair; everything else does.
+    const [home, ...localized] = entries;
+    expect(home.url).toMatch(/\/$/);
+    expect(home.alternates).toBeUndefined();
+    for (const entry of localized) {
       expect(Object.keys(entry.alternates?.languages ?? {})).toContain("en");
       expect(Object.keys(entry.alternates?.languages ?? {})).toContain("ka");
     }

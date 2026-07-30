@@ -4,7 +4,11 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
-import { Link, usePathname } from "@/i18n/navigation";
+// The home page is the one address with no locale in it, so the lockup links
+// there with a plain anchor rather than the locale-aware one.
+import NextLink from "next/link";
+
+import { usePathname } from "@/i18n/navigation";
 import { BRAND, LOCKUP } from "@/lib/brand";
 import { WORDMARK } from "@/lib/brand-wordmark";
 import { cn } from "@/lib/utils";
@@ -173,7 +177,7 @@ export function BrandMark({
   }
 
   return (
-    <Link
+    <NextLink
       ref={root as React.Ref<HTMLAnchorElement>}
       href="/"
       aria-label={BRAND.name}
@@ -181,6 +185,6 @@ export function BrandMark({
       style={box}
     >
       {content}
-    </Link>
+    </NextLink>
   );
 }
