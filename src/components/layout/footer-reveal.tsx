@@ -7,9 +7,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-/** How far the page tilts as it clears the footer, and how much it draws back. */
-const TILT = -2.4;
-const SHRINK = 0.02;
+/**
+ * How far the sheet tips as it clears the footer, and how much it has to grow
+ * to keep covering the screen while it does.
+ *
+ * A sheet pivoted at the bottom of the screen and turned by θ carries the top
+ * of the screen sideways by `viewportHeight · sin θ` — a few dozen pixels of
+ * bare edge down each side unless it is over-sized to swallow them. Growing as
+ * it turns is also what the movement means: the sheet is lifting off the card,
+ * so it comes nearer.
+ */
+const TILT = -4;
+const GROW = 0.09;
 
 /**
  * The footer waits underneath the page rather than after it.
@@ -75,10 +84,19 @@ export function FooterReveal({
               clear();
               return;
             }
+            // The pivot rides the bottom edge of the screen rather than the
+            // bottom of a page that may be thousands of pixels tall: turning a
+            // tall sheet about its far end throws whatever is on screen a long
+            // way sideways. Measured off the layout box, never off a rect that
+            // already carries last frame's transform, or the pivot chases
+            // itself.
+            const pivot =
+              window.innerHeight - (pageEl.offsetTop - window.scrollY);
+
             gsap.set(pageEl, {
               rotate: TILT * self.progress,
-              scale: 1 - SHRINK * self.progress,
-              transformOrigin: "50% 100%",
+              scale: 1 + GROW * self.progress,
+              transformOrigin: `50% ${pivot}px`,
               willChange: "transform",
               force3D: true,
             });
