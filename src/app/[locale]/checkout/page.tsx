@@ -125,7 +125,7 @@ export default async function CheckoutPage() {
                           />
                         ) : null}
                       </div>
-                      <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-pill bg-ink-900 text-[10px] tabular-nums text-ink-50">
+                      <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-pill bg-brand-400 text-[10px] tabular-nums text-ink-900">
                         {line.quantity}
                       </span>
                     </div>

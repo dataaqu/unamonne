@@ -108,7 +108,7 @@ export function BagDrawer({
       >
         <BagIcon />
         {count > 0 ? (
-          <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-pill bg-brand-100 text-[10px] tabular-nums text-ink-900">
+          <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-pill bg-brand-400 text-[10px] tabular-nums text-ink-900">
             {count}
           </span>
         ) : null}
