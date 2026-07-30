@@ -92,7 +92,7 @@ export default async function BlogIndexPage({
   const leadTr = lead ? pickTranslation(lead.translations, locale) : null;
 
   return (
-    <SiteChrome locale={locale} section="journal" footer="slim">
+    <SiteChrome locale={locale} section="journal">
       <div className="mx-auto w-full max-w-[1600px] px-6 lg:px-10">
         <div className="border-b border-ink-900 py-14">
           <div className="text-[10px] uppercase tracking-[0.24em] text-ink-500">

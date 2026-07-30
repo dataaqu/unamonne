@@ -198,7 +198,7 @@ export default async function BlogPostPage({
     : null;
 
   return (
-    <SiteChrome locale={locale} section="journal" footer="slim">
+    <SiteChrome locale={locale} section="journal">
       <JsonLd
         data={articleJsonLd({
           title: tr?.title ?? "",
