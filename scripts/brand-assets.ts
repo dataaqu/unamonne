@@ -20,6 +20,10 @@ import sharp from "sharp";
 const ROOT = path.join(process.cwd(), "public");
 const OUT = path.join(ROOT, "brand");
 
+/** The house's cocoa, as `globals.css` sets it. */
+const COCOA = { r: 0x43, g: 0x31, b: 0x31, alpha: 1 };
+const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
+
 // The loader shows the mark at ~152px and the wordmark at ~280px, so these are
 // roughly 3.5x — enough for any screen, small enough to arrive with the HTML.
 const ASSETS = [
@@ -131,6 +135,97 @@ ${letters.map((l) => `    { x: ${l.x}, w: ${l.w} },`).join("\n")}
   console.log(`brand-wordmark.ts  ${letters.length} glyphs`);
 }
 
+/**
+ * Wrap PNGs in an ICO container.
+ *
+ * `app/icon.png` covers every browser that reads the markup, but plenty of
+ * crawlers and readers still ask for `/favicon.ico` blindly, and a 404 there is
+ * a broken link on every page. ICO has allowed PNG-encoded entries since Vista,
+ * so this is a header and a directory around the PNGs — cheaper than a
+ * dependency that would do exactly the same thing.
+ */
+function ico(images: { size: number; png: Buffer }[]): Buffer {
+  const HEADER = 6;
+  const ENTRY = 16;
+
+  const header = Buffer.alloc(HEADER);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // 1 = icon
+  header.writeUInt16LE(images.length, 4);
+
+  let offset = HEADER + ENTRY * images.length;
+  const entries = images.map(({ size, png }) => {
+    const entry = Buffer.alloc(ENTRY);
+    entry.writeUInt8(size >= 256 ? 0 : size, 0); // 0 means 256
+    entry.writeUInt8(size >= 256 ? 0 : size, 1);
+    entry.writeUInt8(0, 2); // palette size: none
+    entry.writeUInt8(0, 3); // reserved
+    entry.writeUInt16LE(1, 4); // colour planes
+    entry.writeUInt16LE(32, 6); // bits per pixel
+    entry.writeUInt32LE(png.length, 8);
+    entry.writeUInt32LE(offset, 12);
+    offset += png.length;
+    return entry;
+  });
+
+  return Buffer.concat([header, ...entries, ...images.map((i) => i.png)]);
+}
+
+/** The mark, inset on a square field — a logo that runs edge to edge reads as a crop. */
+async function markOn(
+  size: number,
+  background: typeof COCOA | typeof TRANSPARENT,
+) {
+  const inset = 0.12;
+  const art = await prepare("fav.webp", size)
+    .resize({
+      width: Math.round(size * (1 - inset * 2)),
+      height: Math.round(size * (1 - inset * 2)),
+      fit: "inside",
+    })
+    .toBuffer();
+
+  return sharp({
+    create: { width: size, height: size, channels: 4, background },
+  })
+    .composite([{ input: art, gravity: "center" }])
+    .png({ compressionLevel: 9 });
+}
+
+/**
+ * The tab and home-screen icons, cut from the same mark.
+ *
+ * `icon.png` keeps its transparency, so the crescent sits on whatever colour the
+ * browser's tab strip happens to be. `apple-icon.png` cannot: iOS composites a
+ * home-screen icon onto black, so that one is given the house's cocoa field.
+ */
+async function icons() {
+  const files: [string, number, typeof COCOA | typeof TRANSPARENT][] = [
+    ["src/app/icon.png", 256, TRANSPARENT],
+    ["src/app/apple-icon.png", 180, COCOA],
+  ];
+
+  for (const [to, size, background] of files) {
+    const info = await (await markOn(size, background)).toFile(
+      path.join(process.cwd(), to),
+    );
+    console.log(
+      `${to}  ${info.width}x${info.height}  ${(info.size / 1024).toFixed(1)} kB`,
+    );
+  }
+
+  const bundle = ico(
+    await Promise.all(
+      [16, 32, 48].map(async (size) => ({
+        size,
+        png: await (await markOn(size, TRANSPARENT)).toBuffer(),
+      })),
+    ),
+  );
+  await writeFile(path.join(process.cwd(), "src/app/favicon.ico"), bundle);
+  console.log(`src/app/favicon.ico  16/32/48  ${(bundle.length / 1024).toFixed(1)} kB`);
+}
+
 async function main() {
   await mkdir(OUT, { recursive: true });
 
@@ -145,6 +240,7 @@ async function main() {
 
   await whiteWordmark();
   await writeLetterMetrics();
+  await icons();
 }
 
 main().then(() => process.exit(0));
