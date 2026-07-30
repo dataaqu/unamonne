@@ -1,10 +1,10 @@
-import { CheckIcon, ChevronIcon, CloseIcon, TruckIcon } from "@/components/ui/icons";
+import { AlertIcon, CheckIcon, ChevronIcon, TruckIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 const NOTICE = {
   success: ["border-success-500 bg-success-50", "text-success-600", CheckIcon],
   warning: ["border-warning-500 bg-warning-50", "text-warning-600", TruckIcon],
-  danger: ["border-danger-500 bg-danger-50", "text-danger-600", CloseIcon],
+  danger: ["border-danger-500 bg-danger-50", "text-danger-600", AlertIcon],
 } as const;
 
 /** Left-ruled notice. Status colour lives on the rule and the icon, never the type. */

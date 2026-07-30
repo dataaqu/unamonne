@@ -1,21 +1,14 @@
-import { SiteChrome } from "@/components/layout/site-chrome";
-
 /**
- * Sign-in and registration keep the shop's chrome: someone who came here from a
- * product page needs the way back, and the bag has to stay reachable so signing
- * in mid-checkout does not feel like leaving the shop.
+ * Sign-in, registration and password reset are the shop's only full-bleed
+ * screens: a campaign image on one side, one decision on the other. They carry
+ * their own mark, their own way back to the shop and their own language switch,
+ * so the site's header and footer are deliberately absent — a nav bar full of
+ * other decisions is the wrong company for this one.
  */
-export default async function AuthLayout({
+export default function AuthLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  return (
-    <SiteChrome locale={locale} footer="slim" announcement={false}>
-      {children}
-    </SiteChrome>
-  );
+  return <main className="flex flex-1 flex-col">{children}</main>;
 }

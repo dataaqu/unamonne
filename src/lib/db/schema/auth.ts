@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -86,3 +87,31 @@ export const verificationTokens = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+/**
+ * A pending "forgot my password" request.
+ *
+ * Only a SHA-256 of the emailed token is stored: the token itself exists in the
+ * link and nowhere else, so a leaked table cannot be used to take an account
+ * over. A row is single-use (`usedAt`) and short-lived (`expiresAt`); issuing a
+ * new one drops the user's older rows, so the last link mailed is the only one
+ * that works.
+ */
+export const passwordResetTokens = pgTable(
+  "password_reset_token",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+    usedAt: timestamp("used_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("password_reset_user_idx").on(t.userId)],
+);
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;

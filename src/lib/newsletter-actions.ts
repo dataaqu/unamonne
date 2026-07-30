@@ -3,8 +3,7 @@
 import { z } from "zod";
 
 import { routing } from "@/i18n/routing";
-import { db } from "@/lib/db";
-import { newsletterSubscribers } from "@/lib/db/schema";
+import { upsertSubscriber } from "@/lib/newsletter";
 
 export type NewsletterState = {
   ok: boolean;
@@ -19,11 +18,6 @@ const schema = z.object({
 
 /**
  * Join the seasonal letter.
- *
- * Re-subscribing is idempotent AND deliberately re-opens a closed subscription:
- * someone typing their address into the form again is asking to be back on the
- * list, so `unsubscribedAt` is cleared. Everything else about the row (when
- * they first joined) is left alone.
  *
  * The response never distinguishes "new" from "already subscribed" — that would
  * turn the form into an oracle for whether an address is on the list.
@@ -40,17 +34,11 @@ export async function subscribeToNewsletterAction(
   if (!parsed.success) return { ok: false, error: "EMAIL_INVALID" };
 
   try {
-    await db
-      .insert(newsletterSubscribers)
-      .values({
-        email: parsed.data.email,
-        locale: parsed.data.locale,
-        source: parsed.data.source ?? null,
-      })
-      .onConflictDoUpdate({
-        target: newsletterSubscribers.email,
-        set: { locale: parsed.data.locale, unsubscribedAt: null },
-      });
+    await upsertSubscriber({
+      email: parsed.data.email,
+      locale: parsed.data.locale,
+      source: parsed.data.source,
+    });
   } catch {
     return { ok: false, error: "UNKNOWN" };
   }

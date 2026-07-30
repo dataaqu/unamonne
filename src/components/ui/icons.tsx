@@ -90,6 +90,34 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+export function EyeIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function EyeOffIcon(props: IconProps) {
+  return (
+    <svg {...base(props)} strokeLinecap="round">
+      <path d="M4 4l16 16" />
+      <path d="M9.5 6.2A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3.3 4M6.4 8.3A17.6 17.6 0 0 0 2.5 12S6 18.5 12 18.5c1 0 1.9-.2 2.7-.5" />
+    </svg>
+  );
+}
+
+/** Something went wrong — the only icon the house draws with a raised voice. */
+export function AlertIcon(props: IconProps) {
+  return (
+    <svg {...base(props)} strokeWidth={1.4} strokeLinecap="round">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 8v5M12 16.2v.1" />
+    </svg>
+  );
+}
+
 export function GlobeIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

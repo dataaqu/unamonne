@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import type { CartLine, CartWithItems } from "@/lib/cart";
 import { db } from "@/lib/db";
@@ -255,6 +255,25 @@ export function findOrdersForAdmin(filters: OrderFilters = {}) {
     where: conditions.length > 0 ? and(...conditions) : undefined,
     with: { items: true },
     orderBy: [desc(orders.createdAt)],
+  });
+}
+
+/**
+ * A guest lookup: the printed reference plus the email the order was placed
+ * with. Both are required, and the email is what makes this safe to expose —
+ * an eight-character reference alone is short enough to guess at, an address
+ * paired with it is not.
+ */
+export function findOrderByReference(reference: string, email: string) {
+  const ref = reference.trim().replace(/\s+/g, "").toUpperCase();
+  if (ref.length !== 8) return Promise.resolve(undefined);
+
+  return db.query.orders.findFirst({
+    where: and(
+      sql`upper(left(${orders.id}, 8)) = ${ref}`,
+      sql`lower(${orders.email}) = ${email.trim().toLowerCase()}`,
+    ),
+    with: { items: { with: { product: { with: { images: true } } } } },
   });
 }
 
