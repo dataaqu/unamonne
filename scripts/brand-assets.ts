@@ -22,7 +22,6 @@ const OUT = path.join(ROOT, "brand");
 
 /** The house's cocoa, as `globals.css` sets it. */
 const COCOA = { r: 0x43, g: 0x31, b: 0x31, alpha: 1 };
-const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
 // The loader shows the mark at ~152px and the wordmark at ~280px, so these are
 // roughly 3.5x — enough for any screen, small enough to arrive with the HTML.
@@ -171,12 +170,19 @@ function ico(images: { size: number; png: Buffer }[]): Buffer {
   return Buffer.concat([header, ...entries, ...images.map((i) => i.png)]);
 }
 
-/** The mark, inset on a square field — a logo that runs edge to edge reads as a crop. */
+/**
+ * The mark on a square field.
+ *
+ * The inset is small for the tab icons: a favicon is drawn at 16px, and the
+ * crescent is mostly the space it encloses, so every percent of margin is a
+ * percent of an already tiny mark given away. The home-screen icon keeps a real
+ * margin — iOS puts it in a rounded square and clips the corners.
+ */
 async function markOn(
   size: number,
-  background: typeof COCOA | typeof TRANSPARENT,
+  background: typeof COCOA,
+  inset = 0.02,
 ) {
-  const inset = 0.12;
   const art = await prepare("fav.webp", size)
     .resize({
       width: Math.round(size * (1 - inset * 2)),
@@ -195,18 +201,20 @@ async function markOn(
 /**
  * The tab and home-screen icons, cut from the same mark.
  *
- * `icon.png` keeps its transparency, so the crescent sits on whatever colour the
- * browser's tab strip happens to be. `apple-icon.png` cannot: iOS composites a
- * home-screen icon onto black, so that one is given the house's cocoa field.
+ * All of them sit on the house's cocoa rather than on transparency. A crescent
+ * is a thin line around a hole: dropped onto a browser's own tab colour it
+ * reads as a hairline and looks half the size it is, where the filled tile
+ * occupies the whole 16px it is given. It also holds on a light and a dark tab
+ * strip alike, which transparency does not.
  */
 async function icons() {
-  const files: [string, number, typeof COCOA | typeof TRANSPARENT][] = [
-    ["src/app/icon.png", 256, TRANSPARENT],
-    ["src/app/apple-icon.png", 180, COCOA],
+  const files: [string, number, typeof COCOA, number][] = [
+    ["src/app/icon.png", 256, COCOA, 0.06],
+    ["src/app/apple-icon.png", 180, COCOA, 0.14],
   ];
 
-  for (const [to, size, background] of files) {
-    const info = await (await markOn(size, background)).toFile(
+  for (const [to, size, background, inset] of files) {
+    const info = await (await markOn(size, background, inset)).toFile(
       path.join(process.cwd(), to),
     );
     console.log(
@@ -218,7 +226,7 @@ async function icons() {
     await Promise.all(
       [16, 32, 48].map(async (size) => ({
         size,
-        png: await (await markOn(size, TRANSPARENT)).toBuffer(),
+        png: await (await markOn(size, COCOA, 0.06)).toBuffer(),
       })),
     ),
   );
