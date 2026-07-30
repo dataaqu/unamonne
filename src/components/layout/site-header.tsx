@@ -131,7 +131,7 @@ export async function SiteHeader({
           </Link>
         </nav>
 
-        <BrandMark size={light ? "md" : "sm"} />
+        <BrandMark size={light ? "md" : "sm"} tone={light ? "light" : "dark"} animate />
 
         <div
           className={cn(

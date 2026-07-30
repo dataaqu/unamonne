@@ -48,7 +48,22 @@ function report(name: string, info: sharp.OutputInfo) {
 }
 
 /**
- * The wordmark, repainted white.
+ * The wordmark as drawn: black on transparency, for the lockup on cream.
+ *
+ * Trimmed and resized to match the white cut below exactly, so one set of
+ * letter boxes describes both.
+ */
+async function inkWordmark() {
+  report(
+    "wordmark-ink.webp",
+    await prepare("logotext.webp", 1200)
+      .webp({ quality: 92, effort: 6, alphaQuality: 100 })
+      .toFile(path.join(OUT, "wordmark-ink.webp")),
+  );
+}
+
+/**
+ * The wordmark, repainted white, for the lockup on cocoa.
  *
  * The master draws the name in black on transparency, which disappears against
  * the cocoa the overture plays on. Only the colour is replaced: the original
@@ -250,6 +265,7 @@ async function main() {
     );
   }
 
+  await inkWordmark();
   await whiteWordmark();
   await writeLetterMetrics();
   await icons();

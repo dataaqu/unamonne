@@ -64,7 +64,7 @@ export async function SiteFooter({
     <footer className="mt-auto bg-ink-900 px-6 py-14 text-ink-300 lg:px-10">
       <div className="mx-auto grid w-full max-w-[1600px] gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
-          <BrandMark size="lg" className="text-ink-50" />
+          <BrandMark size="lg" tone="light" />
           <p className="mt-5 max-w-xs text-[13px] leading-relaxed">
             {t("studio")}
           </p>

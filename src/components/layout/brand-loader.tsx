@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
+import { LOCKUP } from "@/lib/brand";
 import { WORDMARK } from "@/lib/brand-wordmark";
 
 gsap.registerPlugin(useGSAP);
@@ -198,21 +199,26 @@ export function BrandLoader() {
             height={598}
             fetchPriority="high"
             decoding="sync"
-            className="h-auto w-[104px] will-change-transform sm:w-[132px] lg:w-[152px]"
+            className="h-auto w-[92px] will-change-transform sm:w-[124px] lg:w-[152px]"
           />
 
-          {/* The name begins inside the crescent's own opening rather than
-              beside it, so the mark and the word are one lockup.
+          {/* The lockup, at the proportions the house draws it — the widths
+              are percentages of the mark beside them, so the overture and the
+              header logo are the same drawing at different scales.
 
-              Each letter is a window onto the drawn logotype — one image, eight
+              Each letter is a window onto the drawn logotype: one image, eight
               frames, cut at the gaps the artwork already has (see
               scripts/brand-assets.ts). That is what lets the name be written a
               letter at a time while still being the logotype and not a font's
               impression of it. */}
           <div
             ref={wordWrap}
-            className="invisible absolute top-1/2 left-[64%] w-[178px] -translate-y-1/2 sm:w-[226px] lg:w-[264px]"
-            style={{ aspectRatio: `${WORDMARK.width} / ${WORDMARK.height}` }}
+            className="invisible absolute top-1/2 -translate-y-1/2"
+            style={{
+              left: `${LOCKUP.wordLeft * 100}%`,
+              width: `${LOCKUP.wordWidth * 100}%`,
+              aspectRatio: `${WORDMARK.width} / ${WORDMARK.height}`,
+            }}
           >
             {WORDMARK.letters.map((letter) => (
               <span
