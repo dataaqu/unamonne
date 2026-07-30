@@ -82,6 +82,9 @@ export function FooterReveal({
           start: "bottom bottom",
           end: () => `+=${dockEl.offsetHeight}`,
           invalidateOnRefresh: true,
+          // Created before the page's own triggers but last in page order, so
+          // it is told to refresh last and cannot shift them.
+          refreshPriority: 1,
           onUpdate: (self) => {
             if (self.progress === 0) {
               clear();

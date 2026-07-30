@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 import { SiteChrome } from "@/components/layout/site-chrome";
+import { ScrollMotion } from "@/components/motion/scroll-motion";
 import { ProductCard } from "@/components/shop/product-card";
 import { ArrowLink } from "@/components/ui/btn";
 import { Link } from "@/i18n/navigation";
@@ -76,10 +77,11 @@ export default async function Home() {
   return (
     <SiteChrome header="transparent" locale={locale}>
       {/* campaign */}
-      <section className="relative bg-ink-900">
+      <section className="relative overflow-hidden bg-ink-900">
         {heroUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            data-drift
             src={heroUrl}
             alt=""
             className="h-[480px] w-full object-cover object-center sm:h-[620px] lg:h-[720px]"
@@ -108,7 +110,10 @@ export default async function Home() {
       {/* featured */}
       {featured.length > 0 ? (
         <section className="mx-auto w-full max-w-[1600px] px-6 py-16 lg:px-10 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-ink-900 pb-6">
+          <div
+            data-rise
+            className="flex flex-wrap items-end justify-between gap-6 border-b border-ink-900 pb-6"
+          >
             <div>
               <div className="text-[10px] uppercase tracking-[0.24em] text-ink-500">
                 {t("featuredKicker")}
@@ -122,7 +127,10 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
+          <div
+            data-rise-group
+            className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4"
+          >
             {featured.map((product) => (
               <ProductCard
                 key={product.id}
@@ -143,7 +151,10 @@ export default async function Home() {
       {/* the workshop */}
       <section className="bg-ink-900">
         <div className="mx-auto grid w-full max-w-[1600px] lg:grid-cols-[1fr_120px_1.1fr]">
-          <div className="flex flex-col justify-center gap-8 px-6 py-14 lg:px-10 lg:py-20">
+          <div
+            data-rise-group
+            className="flex flex-col justify-center gap-8 px-6 py-14 lg:px-10 lg:py-20"
+          >
             <div>
               <div className="text-[10px] uppercase tracking-[0.24em] text-ink-400">
                 {t("workshopKicker")}
@@ -160,7 +171,10 @@ export default async function Home() {
             </ArrowLink>
           </div>
 
-          <div className="hidden flex-col gap-1 overflow-hidden py-1 lg:flex">
+          <div
+            data-rise-group
+            className="hidden flex-col gap-1 overflow-hidden py-1 lg:flex"
+          >
             {strip.map((image) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -173,12 +187,15 @@ export default async function Home() {
           </div>
 
           {workshopUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={workshopUrl}
-              alt=""
-              className="h-[340px] w-full object-cover lg:h-full"
-            />
+            <div className="overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                data-settle
+                src={workshopUrl}
+                alt=""
+                className="h-[340px] w-full object-cover lg:h-full"
+              />
+            </div>
           ) : (
             <div />
           )}
@@ -188,7 +205,7 @@ export default async function Home() {
       {/* shop by piece */}
       {categories.length > 0 ? (
         <section className="mx-auto w-full max-w-[1600px] px-6 py-16 lg:px-10 lg:py-24">
-          <div className="flex items-end justify-between gap-6">
+          <div data-rise className="flex items-end justify-between gap-6">
             <h2 className="text-4xl leading-[0.98] tracking-[-0.03em] sm:text-5xl">
               {t("categoriesTitle")}
             </h2>
@@ -197,7 +214,10 @@ export default async function Home() {
             </ArrowLink>
           </div>
 
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            data-rise-group
+            className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {categories.map((category) => (
               <Link
                 key={category.id}
@@ -232,7 +252,10 @@ export default async function Home() {
       {/* journal */}
       {journal.length > 0 ? (
         <section className="mx-auto w-full max-w-[1600px] border-t border-ink-200 px-6 py-16 lg:px-10 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-6">
+          <div
+            data-rise
+            className="flex flex-wrap items-end justify-between gap-6"
+          >
             <div>
               <div className="text-[10px] uppercase tracking-[0.24em] text-ink-500">
                 {t("journalKicker")}
@@ -244,7 +267,10 @@ export default async function Home() {
             <ArrowLink href="/blog">{t("allPosts")}</ArrowLink>
           </div>
 
-          <div className="mt-10 grid gap-x-5 gap-y-10 sm:grid-cols-3">
+          <div
+            data-rise-group
+            className="mt-10 grid gap-x-5 gap-y-10 sm:grid-cols-3"
+          >
             {journal.map((post) => {
               const tr = pickPost(post.translations, locale);
               if (!tr) return null;
@@ -303,7 +329,10 @@ export default async function Home() {
 
       {/* newsletter */}
       <section className="grid bg-brand-100 lg:grid-cols-2">
-        <div className="flex flex-col justify-center px-6 py-14 lg:px-10 lg:py-20">
+        <div
+          data-rise-group
+          className="flex flex-col justify-center px-6 py-14 lg:px-10 lg:py-20"
+        >
           <h2 className="max-w-sm text-3xl leading-[1] tracking-[-0.03em] text-balance sm:text-4xl">
             {tNews("title")}
           </h2>
@@ -313,9 +342,10 @@ export default async function Home() {
           <NewsletterForm source="home" className="mt-9" />
         </div>
         {newsletterUrl ? (
-          <div className="hidden lg:block">
+          <div className="hidden overflow-hidden lg:block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
+              data-settle
               src={newsletterUrl}
               alt=""
               className="h-full w-full object-cover"
@@ -323,6 +353,8 @@ export default async function Home() {
           </div>
         ) : null}
       </section>
+
+      <ScrollMotion />
     </SiteChrome>
   );
 }
