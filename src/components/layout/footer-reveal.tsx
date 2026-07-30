@@ -8,14 +8,17 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 /**
- * How far the sheet tips as it clears the footer, and how much it has to grow
- * to keep covering the screen while it does.
+ * How far the sheet tips as it clears the footer, and how much it grows doing it.
  *
- * A sheet pivoted at the bottom of the screen and turned by θ carries the top
- * of the screen sideways by `viewportHeight · sin θ` — a few dozen pixels of
- * bare edge down each side unless it is over-sized to swallow them. Growing as
- * it turns is also what the movement means: the sheet is lifting off the card,
- * so it comes nearer.
+ * It turns about its own bottom-left corner: that corner is a nail through the
+ * sheet, the right side is what lifts. The pivot is a constant in the sheet's
+ * own coordinates — computing it against the screen each frame would move the
+ * point everything is measured from, and the page would twitch under the
+ * scroll instead of gliding.
+ *
+ * Growing as it turns is both practical and what the movement means: a turn
+ * about the left edge swings the right side inward, and the sheet is lifting
+ * off the card, so it comes nearer.
  */
 const TILT = -4;
 const GROW = 0.09;
@@ -84,19 +87,10 @@ export function FooterReveal({
               clear();
               return;
             }
-            // The pivot rides the bottom edge of the screen rather than the
-            // bottom of a page that may be thousands of pixels tall: turning a
-            // tall sheet about its far end throws whatever is on screen a long
-            // way sideways. Measured off the layout box, never off a rect that
-            // already carries last frame's transform, or the pivot chases
-            // itself.
-            const pivot =
-              window.innerHeight - (pageEl.offsetTop - window.scrollY);
-
             gsap.set(pageEl, {
               rotate: TILT * self.progress,
               scale: 1 + GROW * self.progress,
-              transformOrigin: `50% ${pivot}px`,
+              transformOrigin: "0% 100%",
               willChange: "transform",
               force3D: true,
             });
