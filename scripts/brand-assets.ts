@@ -22,6 +22,7 @@ const OUT = path.join(ROOT, "brand");
 
 /** The house's cocoa, as `globals.css` sets it. */
 const COCOA = { r: 0x43, g: 0x31, b: 0x31, alpha: 1 };
+const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
 // The loader shows the mark at ~152px and the wordmark at ~280px, so these are
 // roughly 3.5x — enough for any screen, small enough to arrive with the HTML.
@@ -180,7 +181,7 @@ function ico(images: { size: number; png: Buffer }[]): Buffer {
  */
 async function markOn(
   size: number,
-  background: typeof COCOA,
+  background: typeof COCOA | typeof TRANSPARENT,
   inset = 0.02,
 ) {
   const art = await prepare("fav.webp", size)
@@ -201,15 +202,18 @@ async function markOn(
 /**
  * The tab and home-screen icons, cut from the same mark.
  *
- * All of them sit on the house's cocoa rather than on transparency. A crescent
- * is a thin line around a hole: dropped onto a browser's own tab colour it
- * reads as a hairline and looks half the size it is, where the filled tile
- * occupies the whole 16px it is given. It also holds on a light and a dark tab
- * strip alike, which transparency does not.
+ * The tab icons carry no field of their own: the crescent is drawn on
+ * transparency and sits directly on whatever colour the browser's tab strip is,
+ * filling as much of the square as the artwork's own proportions allow.
+ *
+ * `apple-icon.png` is the exception, and not by choice — iOS composites a
+ * home-screen icon onto black, so a transparent one would arrive as a black
+ * tile. That one keeps the house's cocoa, and a wider margin, because iOS clips
+ * it into a rounded square.
  */
 async function icons() {
-  const files: [string, number, typeof COCOA, number][] = [
-    ["src/app/icon.png", 256, COCOA, 0.06],
+  const files: [string, number, typeof COCOA | typeof TRANSPARENT, number][] = [
+    ["src/app/icon.png", 256, TRANSPARENT, 0.02],
     ["src/app/apple-icon.png", 180, COCOA, 0.14],
   ];
 
@@ -226,7 +230,7 @@ async function icons() {
     await Promise.all(
       [16, 32, 48].map(async (size) => ({
         size,
-        png: await (await markOn(size, COCOA, 0.06)).toBuffer(),
+        png: await (await markOn(size, TRANSPARENT, 0.02)).toBuffer(),
       })),
     ),
   );
