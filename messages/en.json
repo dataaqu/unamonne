@@ -672,26 +672,6 @@
       "paymentQ": "How payment works",
       "paymentA": "In Georgia you pay in GEL through Bank of Georgia. Everywhere else in USD through Stripe — the currency follows your region and you can switch it in the header."
     },
-    "reviews": "Reviews",
-    "reviewCount": "{count, plural, =0 {No reviews yet} one {# review} other {# reviews}}",
-    "noReviews": "No one has written about this piece yet.",
-    "writeReview": "Write a review",
-    "editReview": "Edit your review",
-    "rating": "Rating",
-    "ratingStars": "{count, plural, one {# star} other {# stars}}",
-    "reviewBody": "Your review",
-    "reviewPlaceholder": "How does it wear?",
-    "submitReview": "Publish review",
-    "submittingReview": "Publishing…",
-    "reviewThanks": "Thank you — your review is live.",
-    "verified": "Verified purchase",
-    "signInToReview": "Sign in to write a review",
-    "reviewErrors": {
-      "UNAUTHENTICATED": "Sign in to write a review.",
-      "INVALID": "Please write at least a sentence and pick a rating.",
-      "NOT_FOUND": "This piece is no longer available.",
-      "UNKNOWN": "Something went wrong. Please try again."
-    },
     "pairsWith": "Pairs well with",
     "allProducts": "All products",
     "notifyErrors": {

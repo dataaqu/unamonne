@@ -7,16 +7,13 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { BuyForm } from "@/components/shop/buy-form";
 import { ProductCard } from "@/components/shop/product-card";
 import { ProductGallery } from "@/components/shop/product-gallery";
-import { ReviewForm } from "@/components/shop/review-form";
 import { SaveButton } from "@/components/shop/save-button";
-import { Rating } from "@/components/ui/badge";
 import { ArrowLink } from "@/components/ui/btn";
 import { Breadcrumbs } from "@/components/ui/chip";
 import { CheckIcon, MoonIcon, TruckIcon } from "@/components/ui/icons";
 import { Disclosure } from "@/components/ui/notice";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
-import { auth } from "@/lib/auth";
 import { pickTranslation } from "@/lib/catalog";
 import { formatPrice } from "@/lib/money";
 import { getRegion } from "@/lib/region";
@@ -25,9 +22,7 @@ import { localizedUrl } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
 import {
   getProductBySlug,
-  getProductReviews,
   getRelatedProducts,
-  getReviewSummary,
   isProductAvailable,
 } from "@/lib/shop";
 import { getSavedProductIds } from "@/lib/wishlist";
@@ -81,16 +76,13 @@ export default async function ProductPage({
   const product = await getProductBySlug(locale, slug);
   if (!product) notFound();
 
-  const [region, t, tShop, session] = await Promise.all([
+  const [region, t, tShop] = await Promise.all([
     getRegion(),
     getTranslations("Product"),
     getTranslations("Shop"),
-    auth(),
   ]);
 
-  const [summary, reviews, related, saved] = await Promise.all([
-    getReviewSummary(product.id),
-    getProductReviews(product.id),
+  const [related, saved] = await Promise.all([
     getRelatedProducts(product),
     getSavedProductIds(),
   ]);
@@ -108,15 +100,6 @@ export default async function ProductPage({
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const url = localizedUrl(locale, `/product/${tr?.slug ?? slug}`);
-
-  const ownReview =
-    session?.user?.id != null
-      ? (reviews.find((review) => review.userId === session.user?.id) ?? null)
-      : null;
-
-  const dateFmt = new Intl.DateTimeFormat(locale === "ka" ? "ka-GE" : "en-US", {
-    dateStyle: "medium",
-  });
 
   return (
     <SiteChrome locale={locale} section="shop">
@@ -211,19 +194,6 @@ export default async function ProductPage({
               </span>
             </div>
 
-            {summary.count > 0 ? (
-              <div className="mt-3 flex items-center gap-2">
-                <Rating value={summary.average} />
-                <span className="text-ink-300">·</span>
-                <a
-                  href="#reviews"
-                  className="text-[11px] text-ink-600 underline underline-offset-4 hover:text-ink-900"
-                >
-                  {t("reviewCount", { count: summary.count })}
-                </a>
-              </div>
-            ) : null}
-
             {tr?.description ? (
               <p className="mt-7 max-w-md whitespace-pre-line text-[15px] leading-[1.7] text-ink-700">
                 {tr.description}
@@ -313,77 +283,6 @@ export default async function ProductPage({
             </div>
           </div>
         </div>
-
-        {/* reviews */}
-        <section id="reviews" className="border-t border-ink-200 py-14">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-3xl tracking-[-0.025em]">{t("reviews")}</h2>
-            {summary.count > 0 ? (
-              <Rating value={summary.average} count={summary.count} />
-            ) : null}
-          </div>
-
-          <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-20">
-            <div>
-              {reviews.length === 0 ? (
-                <p className="text-[13px] text-ink-500">{t("noReviews")}</p>
-              ) : (
-                <ul className="space-y-8">
-                  {reviews.map((review) => (
-                    <li
-                      key={review.id}
-                      className="border-b border-ink-200 pb-8 last:border-b-0"
-                    >
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[11px] uppercase tracking-[0.16em]">
-                          {review.authorName}
-                        </span>
-                        <Rating value={review.rating} />
-                        {review.isVerified ? (
-                          <span className="text-[10px] uppercase tracking-[0.16em] text-success-700">
-                            {t("verified")}
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="mt-2 max-w-lg whitespace-pre-line text-[13px] leading-relaxed text-ink-700">
-                        {review.body}
-                      </p>
-                      <div className="mt-2 text-xs text-ink-500">
-                        {review.variantLabel ? `${review.variantLabel} · ` : ""}
-                        {dateFmt.format(review.createdAt)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div>
-              {session?.user ? (
-                <ReviewForm
-                  productId={product.id}
-                  variantLabels={product.variants.map((v) => v.label)}
-                  existing={
-                    ownReview
-                      ? {
-                          rating: ownReview.rating,
-                          body: ownReview.body,
-                          variantLabel: ownReview.variantLabel,
-                        }
-                      : null
-                  }
-                />
-              ) : (
-                <Link
-                  href="/login"
-                  className="text-[11px] uppercase tracking-[0.16em] text-ink-600 underline underline-offset-4 hover:text-ink-900"
-                >
-                  {t("signInToReview")}
-                </Link>
-              )}
-            </div>
-          </div>
-        </section>
 
         {/* pairs well with */}
         {related.length > 0 ? (

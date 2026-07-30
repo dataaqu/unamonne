@@ -9,7 +9,7 @@
  *              T4.2  abandoned cart emails  ✅
  *   - account  T3.7  addresses  ✅
  *   - blog     T5.1  posts (+ translations)  ✅  tags + post→product ✅
- *   - catalog  variants, specs, reviews  ✅
+ *   - catalog  variants, specs  ✅
  *   - engagement  wishlist, back-in-stock, newsletter, discount codes  ✅
  */
 // `common` must be exported too — drizzle-kit only emits CREATE TYPE for enums

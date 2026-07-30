@@ -157,14 +157,6 @@ export function TrashIcon(props: IconProps) {
   );
 }
 
-export function StarIcon(props: IconProps) {
-  return (
-    <svg {...base(props)} fill="currentColor" stroke="none">
-      <path d="m12 3.5 2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-3-5.3 3 1.1-6L3.4 9.9l6-.8z" />
-    </svg>
-  );
-}
-
 export function BoxIcon(props: IconProps) {
   return (
     <svg {...base(props)} strokeLinejoin="round">

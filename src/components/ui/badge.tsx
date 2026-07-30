@@ -1,4 +1,3 @@
-import { StarIcon } from "@/components/ui/icons";
 import { formatPrice } from "@/lib/money";
 import type { Region } from "@/lib/region";
 import { cn } from "@/lib/utils";
@@ -55,38 +54,6 @@ export function Price({
         <span className="text-xs text-ink-400 line-through">
           {formatPrice(was, region)}
         </span>
-      ) : null}
-    </span>
-  );
-}
-
-/** Five stars, filled to the rounded average. Gold, the one coloured mark. */
-export function Rating({
-  value,
-  count,
-  className,
-}: {
-  value: number;
-  count?: number;
-  className?: string;
-}) {
-  const filled = Math.round(value);
-  return (
-    <span className={cn("inline-flex items-center gap-2 text-[11px] text-ink-600", className)}>
-      <span className="flex gap-0.5" aria-hidden>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <StarIcon
-            key={i}
-            className={cn("h-3 w-3", i < filled ? "text-brand-500" : "text-ink-300")}
-          />
-        ))}
-      </span>
-      <span className="tabular-nums">{value.toFixed(1)}</span>
-      {count !== undefined ? (
-        <>
-          <span className="text-ink-300">·</span>
-          <span className="tabular-nums">{count}</span>
-        </>
       ) : null}
     </span>
   );

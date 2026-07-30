@@ -10,7 +10,6 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
-import { users } from "./auth";
 import { locale } from "./common";
 
 /**
@@ -210,48 +209,11 @@ export const productSpecs = pgTable(
   (t) => [index("product_spec_product_locale_idx").on(t.productId, t.locale)],
 );
 
-/**
- * Customer reviews. Signed-in only (`userId` is required and unique per
- * product), which is the cheapest honest anti-spam rule there is: one account,
- * one review, and a real person to attach it to.
- *
- * `authorName` is snapshotted from the account at write time so a later profile
- * rename does not silently rewrite an old review's byline, and `isVerified`
- * records whether the reviewer had actually bought the piece.
- */
-export const productReviews = pgTable(
-  "product_review",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    productId: text("product_id")
-      .notNull()
-      .references(() => products.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    authorName: text("author_name").notNull(),
-    rating: integer("rating").notNull(),
-    body: text("body").notNull(),
-    /** Which option they bought, shown under the review ("Size 16"). */
-    variantLabel: text("variant_label"),
-    isVerified: boolean("is_verified").notNull().default(false),
-    isPublished: boolean("is_published").notNull().default(true),
-    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-  },
-  (t) => [
-    uniqueIndex("product_review_product_user_uq").on(t.productId, t.userId),
-    index("product_review_product_idx").on(t.productId),
-  ],
-);
-
 export const productsRelations = relations(products, ({ many, one }) => ({
   translations: many(productTranslations),
   images: many(productImages),
   variants: many(productVariants),
   specs: many(productSpecs),
-  reviews: many(productReviews),
   category: one(categories, {
     fields: [products.categoryId],
     references: [categories.id],
@@ -269,17 +231,6 @@ export const productSpecsRelations = relations(productSpecs, ({ one }) => ({
   product: one(products, {
     fields: [productSpecs.productId],
     references: [products.id],
-  }),
-}));
-
-export const productReviewsRelations = relations(productReviews, ({ one }) => ({
-  product: one(products, {
-    fields: [productReviews.productId],
-    references: [products.id],
-  }),
-  user: one(users, {
-    fields: [productReviews.userId],
-    references: [users.id],
   }),
 }));
 
@@ -310,5 +261,3 @@ export type ProductVariant = typeof productVariants.$inferSelect;
 export type NewProductVariant = typeof productVariants.$inferInsert;
 export type ProductSpec = typeof productSpecs.$inferSelect;
 export type NewProductSpec = typeof productSpecs.$inferInsert;
-export type ProductReview = typeof productReviews.$inferSelect;
-export type NewProductReview = typeof productReviews.$inferInsert;

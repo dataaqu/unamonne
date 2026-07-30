@@ -71,6 +71,13 @@
       "when": 1785397355628,
       "tag": "0009_clammy_silhouette",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785412605712,
+      "tag": "0010_organic_madripoor",
+      "breakpoints": true
     }
   ]
 }

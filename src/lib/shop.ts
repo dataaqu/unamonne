@@ -20,7 +20,6 @@ import { db } from "@/lib/db";
 import {
   categories,
   categoryTranslations,
-  productReviews,
   productTranslations,
   productVariants,
   products,
@@ -431,40 +430,4 @@ export async function getRelatedProducts(
     0,
     limit,
   );
-}
-
-/* -------------------------------- reviews -------------------------------- */
-
-export type ReviewSummary = { average: number; count: number };
-
-/** Star average and count for one product, for the head of a product page. */
-export async function getReviewSummary(
-  productId: string,
-): Promise<ReviewSummary> {
-  const [row] = await db
-    .select({
-      average: sql<number>`coalesce(avg(${productReviews.rating}), 0)`,
-      value: count(),
-    })
-    .from(productReviews)
-    .where(
-      and(
-        eq(productReviews.productId, productId),
-        eq(productReviews.isPublished, true),
-      ),
-    );
-
-  return { average: Number(row?.average ?? 0), count: Number(row?.value ?? 0) };
-}
-
-/** Published reviews for a product, newest first. */
-export function getProductReviews(productId: string, limit = 10) {
-  return db.query.productReviews.findMany({
-    where: and(
-      eq(productReviews.productId, productId),
-      eq(productReviews.isPublished, true),
-    ),
-    orderBy: [desc(productReviews.createdAt)],
-    limit,
-  });
 }
