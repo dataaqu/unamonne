@@ -74,6 +74,19 @@ export function BrandLoader() {
         wordWrap.current,
       );
 
+      // A few seconds are a gift, not a toll, so any input hurries the rest
+      // along — but not from the first frame. On a phone a finger lands on the
+      // glass while the page is still arriving, and an overture a stray touch
+      // can cut in half is one nobody on a phone ever sees. The skip is armed
+      // only once the name has started, and it hurries rather than jumps.
+      const hurry = contextSafe!(() =>
+        gsap.to(tl, { timeScale: 1.9, duration: 0.4, overwrite: true }),
+      );
+      const arm = () => {
+        window.addEventListener("pointerdown", hurry, { once: true });
+        window.addEventListener("keydown", hurry, { once: true });
+      };
+
       const moonWidth = moon.current!.offsetWidth;
       const wordRight =
         wordWrap.current!.offsetLeft + wordWrap.current!.offsetWidth;
@@ -89,6 +102,7 @@ export function BrandLoader() {
           { autoAlpha: 0, duration: 0.4 },
           "+=0.8",
         );
+        arm();
       } else {
         // Starting transforms live here rather than in Tailwind classes:
         // v4 writes `rotate`/`translate` as their own properties, which would
@@ -113,6 +127,7 @@ export function BrandLoader() {
             "-=0.4",
           )
           .addLabel("name", "-=0.5")
+          .call(arm, undefined, "name")
           // room is made for the name as it is written into the opening
           .to(lockup.current, { x: -shift, duration: 1.3 }, "name")
           .set(wordWrap.current, { autoAlpha: 1 }, "name")
@@ -151,13 +166,6 @@ export function BrandLoader() {
           .map((img) => img.decode()),
       ).then(start);
       gsap.delayedCall(1, start);
-
-      // Two seconds is a gift, not a toll: any input hurries it along.
-      const hurry = contextSafe!(() =>
-        gsap.to(tl, { timeScale: 2.6, duration: 0.3, overwrite: true }),
-      );
-      window.addEventListener("pointerdown", hurry, { once: true });
-      window.addEventListener("keydown", hurry, { once: true });
 
       return () => {
         window.removeEventListener("pointerdown", hurry);
@@ -203,7 +211,7 @@ export function BrandLoader() {
               impression of it. */}
           <div
             ref={wordWrap}
-            className="invisible absolute top-1/2 left-[59%] w-[178px] -translate-y-1/2 sm:w-[226px] lg:w-[264px]"
+            className="invisible absolute top-1/2 left-[64%] w-[178px] -translate-y-1/2 sm:w-[226px] lg:w-[264px]"
             style={{ aspectRatio: `${WORDMARK.width} / ${WORDMARK.height}` }}
           >
             {WORDMARK.letters.map((letter) => (
