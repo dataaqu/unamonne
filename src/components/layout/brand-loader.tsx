@@ -4,6 +4,8 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
+import { BRAND } from "@/lib/brand";
+
 gsap.registerPlugin(useGSAP);
 
 /**
@@ -30,7 +32,7 @@ export function BrandLoader() {
   const lockup = useRef<HTMLDivElement>(null);
   const moon = useRef<HTMLImageElement>(null);
   const wordWrap = useRef<HTMLDivElement>(null);
-  const word = useRef<HTMLImageElement>(null);
+  const word = useRef<HTMLSpanElement>(null);
   const rule = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -124,14 +126,11 @@ export function BrandLoader() {
           });
       }
 
-      // Start once the art is actually decoded, so the mark never fades in as
-      // an empty box. The delayed call is the floor: a slow image must not hold
+      // Start once the mark is actually decoded, so it never fades in as an
+      // empty box. The delayed call is the floor: a slow image must not hold
       // the shop hostage.
       const start = () => tl.play();
-      Promise.allSettled([
-        moon.current?.decode() ?? Promise.resolve(),
-        word.current?.decode() ?? Promise.resolve(),
-      ]).then(start);
+      Promise.resolve(moon.current?.decode()).catch(() => {}).then(start);
       gsap.delayedCall(1, start);
 
       // Two seconds is a gift, not a toll: any input hurries it along.
@@ -157,7 +156,7 @@ export function BrandLoader() {
         ref={panel}
         data-brand-loader
         aria-hidden="true"
-        className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-ink-100"
+        className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-ink-900"
       >
         <div
           ref={lockup}
@@ -175,31 +174,28 @@ export function BrandLoader() {
             className="h-auto w-[104px] will-change-transform sm:w-[132px] lg:w-[152px]"
           />
 
-          {/* The clip box carries the width: it sits past the right edge of its
-              containing block, where a shrink-to-fit box would collapse to nothing. */}
+          {/* The name is set as type, not as artwork: it takes the panel's
+              colour with it, it stays sharp at any size, and it is the same
+              wordmark the header and the footer already draw.
+              `w-max` because the clip box sits past the right edge of its
+              containing block, where a shrink-to-fit box collapses to nothing. */}
           <div
             ref={wordWrap}
-            className="invisible absolute top-1/2 left-[calc(100%+20px)] w-[172px] -translate-y-1/2 overflow-hidden sm:left-[calc(100%+26px)] sm:w-[216px] lg:left-[calc(100%+32px)] lg:w-[248px]"
+            className="invisible absolute top-1/2 left-[calc(100%+20px)] w-max -translate-y-1/2 overflow-hidden sm:left-[calc(100%+26px)] lg:left-[calc(100%+32px)]"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <span
               ref={word}
-              src="/brand/wordmark.webp"
-              alt=""
-              width={1000}
-              height={93}
-              fetchPriority="high"
-              decoding="sync"
-              className="block h-auto w-full will-change-transform"
-            />
+              className="-mr-[0.3em] block text-[19px] leading-none tracking-[0.3em] text-ink-50 uppercase will-change-transform sm:text-[24px] lg:text-[28px]"
+            >
+              {BRAND.name}
+            </span>
           </div>
         </div>
 
-        {/* A hairline sweeping up makes the exit legible on a panel that is the
-            same cream as the page behind it. */}
+        {/* The curtain's own edge, drawn just before it lifts. */}
         <div
           ref={rule}
-          className="invisible absolute inset-x-0 bottom-0 h-px origin-left bg-ink-900/15"
+          className="invisible absolute inset-x-0 bottom-0 h-px origin-left bg-ink-50/25"
         />
       </div>
     </>

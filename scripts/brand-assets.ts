@@ -4,24 +4,25 @@ import path from "node:path";
 import sharp from "sharp";
 
 /**
- * Derive the loader-sized brand assets from the studio's master art.
+ * Derive the loader-sized mark from the studio's master art.
  *
- * The masters (`public/fav.webp`, `public/logotext.webp`) are 4000px and 8000px
- * squares with a lot of transparent margin around the artwork. That is right
- * for a source file and wrong for the first thing a visitor downloads, so this
- * trims the margin away and resizes to the largest size the loader can show on
- * a 3x screen. Re-run it whenever the studio replaces the master art:
+ * The master (`public/fav.webp`) is a 4000px square with a lot of transparent
+ * margin around the crescent. That is right for a source file and wrong for the
+ * first thing a visitor downloads, so this trims the margin away and resizes to
+ * the largest size the loader can show on a 3x screen. The wordmark is not here
+ * on purpose: it is set as type, so it needs no artwork at all.
+ *
+ * Re-run whenever the studio replaces the master art:
  *
  *   npm run brand:assets
  */
 const ROOT = path.join(process.cwd(), "public");
 const OUT = path.join(ROOT, "brand");
 
-// The loader shows the mark at ~160px and the wordmark at ~280px, so these are
-// roughly 3.5x — enough for any screen, small enough to arrive with the HTML.
+// The loader shows the mark at ~152px, so 560 is roughly 3.5x — enough for any
+// screen, small enough to arrive with the HTML.
 const ASSETS = [
   { from: "fav.webp", to: "moon.webp", width: 560, quality: 82 },
-  { from: "logotext.webp", to: "wordmark.webp", width: 1000, quality: 90 },
 ] as const;
 
 async function main() {
