@@ -70,6 +70,16 @@ export async function ProductCard({
           )}
         </Link>
 
+        {/* The card opens in two beats: the shade comes up first, then the bar
+            rises out of it. Without the veil the bar lands on a photograph and
+            reads as a banner rather than as the card opening. */}
+        {available ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-ink-950/50 to-transparent opacity-0 transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 motion-reduce:transition-none"
+          />
+        ) : null}
+
         {badge ? (
           <div className="pointer-events-none absolute left-0 top-0">
             <Badge tone={badge.tone}>{badge.label}</Badge>
@@ -88,7 +98,7 @@ export async function ProductCard({
             // A size is a decision, not a hover: send them to the piece.
             <Link
               href={href}
-              className="absolute inset-x-0 bottom-0 flex h-11 translate-y-full items-center justify-center bg-ink-900 text-[11px] uppercase tracking-[0.18em] text-ink-50 transition-transform duration-300 focus-visible:translate-y-0 group-hover:translate-y-0"
+              className="absolute inset-x-0 bottom-0 flex h-11 translate-y-full items-center justify-center bg-ink-900 text-[11px] uppercase tracking-[0.18em] text-ink-50 transition-transform delay-75 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 focus-visible:translate-y-0 motion-reduce:transition-none"
             >
               {t("chooseSize")}
             </Link>
