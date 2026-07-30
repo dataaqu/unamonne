@@ -1,3 +1,4 @@
+import { FooterReveal } from "@/components/layout/footer-reveal";
 import { SiteFooter, type FooterVariant } from "@/components/layout/site-footer";
 import {
   SiteHeader,
@@ -37,7 +38,7 @@ export function SiteChrome({
   );
 
   return (
-    <>
+    <FooterReveal footer={<SiteFooter variant={footer} />}>
       {header === "transparent" ? (
         // The transparent header is positioned against the page body, not the
         // viewport, so it lands on the campaign image rather than above it.
@@ -51,7 +52,6 @@ export function SiteChrome({
           <main className="flex flex-1 flex-col">{children}</main>
         </>
       )}
-      <SiteFooter variant={footer} />
-    </>
+    </FooterReveal>
   );
 }

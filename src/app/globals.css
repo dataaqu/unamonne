@@ -262,6 +262,26 @@ html[data-loader="done"] [data-brand-loader] {
   display: none;
 }
 
+/**
+ * The footer waits underneath the page rather than after it: the page is an
+ * opaque sheet on top, the footer is docked to the bottom of the screen behind
+ * it, and the last stretch of scroll slides one off the other. `data-reveal`
+ * is set by the component that measures whether the footer fits on screen at
+ * all — where it does not, both of these are simply off.
+ */
+[data-page] {
+  position: relative;
+  z-index: 10;
+  background-color: var(--color-ink-100);
+}
+
+[data-footer-dock][data-reveal="on"] {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
   &::-webkit-scrollbar {

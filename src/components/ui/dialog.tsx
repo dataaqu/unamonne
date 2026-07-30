@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import { CloseIcon } from "@/components/ui/icons";
+import { Overlay } from "@/components/ui/overlay";
 import { cn } from "@/lib/utils";
 
 /**
@@ -32,22 +33,24 @@ export function Dialog({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      <button
-        type="button"
-        aria-label={closeLabel}
-        onClick={onClose}
-        className="absolute inset-0 bg-ink-950/40"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={label}
-        className={cn("relative w-full bg-ink-100 shadow-float", className)}
-      >
-        {children}
+    <Overlay>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+        <button
+          type="button"
+          aria-label={closeLabel}
+          onClick={onClose}
+          className="absolute inset-0 bg-ink-950/40"
+        />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={label}
+          className={cn("relative w-full bg-ink-100 shadow-float", className)}
+        >
+          {children}
+        </div>
       </div>
-    </div>
+    </Overlay>
   );
 }
 
