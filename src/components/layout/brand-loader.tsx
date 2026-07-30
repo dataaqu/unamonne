@@ -203,7 +203,7 @@ export function BrandLoader() {
               impression of it. */}
           <div
             ref={wordWrap}
-            className="invisible absolute top-1/2 left-[54%] w-[178px] -translate-y-1/2 sm:w-[226px] lg:w-[264px]"
+            className="invisible absolute top-1/2 left-[59%] w-[178px] -translate-y-1/2 sm:w-[226px] lg:w-[264px]"
             style={{ aspectRatio: `${WORDMARK.width} / ${WORDMARK.height}` }}
           >
             {WORDMARK.letters.map((letter) => (
