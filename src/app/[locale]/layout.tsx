@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
+import { BrandLoader } from "@/components/layout/brand-loader";
 import { JsonLd } from "@/components/seo/json-ld";
 import { routing } from "@/i18n/routing";
 import { BRAND } from "@/lib/brand";
@@ -80,9 +81,16 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       className={`${notoGeorgian.variable} ${plexMono.variable} h-full`}
+      // The loader's pre-paint script stamps `data-loader` here before React
+      // hydrates, which is the whole point of it — the attribute has to exist
+      // before the first frame, so it can never match the server HTML.
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-ink-100 text-ink-900">
         <JsonLd data={organizationJsonLd({ name: BRAND.name, url: appUrl() })} />
+        {/* Server-rendered, so the panel is painted with the first frame and
+            the shop is never seen half-dressed underneath it. */}
+        <BrandLoader />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
         <Analytics />
         <SpeedInsights />

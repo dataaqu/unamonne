@@ -214,6 +214,16 @@
   }
 }
 
+/**
+ * The opening overture plays once a session. An inline script stamps
+ * `data-loader="done"` on <html> before first paint for a visitor who has
+ * already seen it (and inside the admin panel), so the panel is never painted
+ * at all rather than being removed after the fact.
+ */
+html[data-loader="done"] [data-brand-loader] {
+  display: none;
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
   &::-webkit-scrollbar {
