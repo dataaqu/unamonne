@@ -2,40 +2,49 @@
 
 import { useTranslations } from "next-intl";
 
+import {
+  BoxIcon,
+  HeartIcon,
+  PinIcon,
+  UserIcon,
+} from "@/components/ui/icons";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
-  { href: "/account", key: "profile" },
-  { href: "/account/saved", key: "saved" },
-  { href: "/account/addresses", key: "addresses" },
-  { href: "/account/orders", key: "orders" },
+  { href: "/account", key: "profile", Icon: UserIcon },
+  { href: "/account/orders", key: "orders", Icon: BoxIcon },
+  { href: "/account/addresses", key: "addresses", Icon: PinIcon },
+  { href: "/account/saved", key: "saved", Icon: HeartIcon },
 ] as const;
 
+/**
+ * The account's side nav. The active room is filled solid rather than
+ * underlined — inside the account the shopper is somewhere, not on the way.
+ */
 export function AccountNav() {
   const t = useTranslations("Account");
   const pathname = usePathname();
 
   return (
-    <nav className="mt-4 flex gap-x-6 overflow-x-auto lg:flex-col lg:gap-x-0 lg:overflow-visible">
-      {ITEMS.map((item) => {
+    <nav className="mt-5 space-y-1">
+      {ITEMS.map(({ href, key, Icon }) => {
         const active =
-          item.href === "/account"
-            ? pathname === "/account"
-            : pathname.startsWith(item.href);
+          href === "/account" ? pathname === "/account" : pathname.startsWith(href);
         return (
           <Link
-            key={item.href}
-            href={item.href}
+            key={href}
+            href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "shrink-0 border-b py-2 text-[13px] transition-colors lg:border-b-0 lg:border-l lg:px-3",
+              "flex items-center gap-3 px-3 py-2.5 text-[13px] transition-colors",
               active
-                ? "border-ink-900 text-ink-900"
-                : "border-transparent text-ink-500 hover:text-ink-900 lg:border-ink-200",
+                ? "bg-ink-900 text-ink-50"
+                : "text-ink-600 hover:bg-ink-200/60 hover:text-ink-900",
             )}
           >
-            {t(item.key)}
+            <Icon className="h-4 w-4 shrink-0" />
+            {t(key)}
           </Link>
         );
       })}

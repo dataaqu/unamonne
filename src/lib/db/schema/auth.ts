@@ -28,6 +28,12 @@ export const users = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: timestamp("email_verified", { mode: "date" }),
   image: text("image"),
+  /**
+   * Contact number for the account itself, editable from /account. Kept apart
+   * from the phone on a saved address: that one belongs to a delivery, this one
+   * to the person, and the studio calls it when an order needs a decision.
+   */
+  phone: text("phone"),
   passwordHash: text("password_hash"),
   role: userRole("role").notNull().default("customer"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),

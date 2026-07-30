@@ -1,64 +1,103 @@
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { OrdersList, type OrderRow } from "@/components/account/orders-list";
+import { addressLines } from "@/lib/account/address-format";
 import { auth } from "@/lib/auth";
-import { formatMoney } from "@/lib/money";
-import { findOrdersByUser } from "@/lib/orders";
+import { formatPrice } from "@/lib/money";
+import {
+  dominantOrderRegion,
+  findOrdersByUser,
+  firstOrderDate,
+  orderHistoryStats,
+  orderItemImage,
+  orderReference,
+} from "@/lib/orders";
+import { getRegion } from "@/lib/region";
 
+/**
+ * Order history. The rows are built here — money formatted in the currency
+ * each order was actually charged in, addresses read off the order's own frozen
+ * shipping fields — so the list component only has to open and close them.
+ */
 export default async function AccountOrdersPage() {
-  const [session, locale, t] = await Promise.all([
+  const [session, locale, t, region] = await Promise.all([
     auth(),
     getLocale(),
     getTranslations("Account"),
+    getRegion(),
   ]);
 
-  const orders = await findOrdersByUser(session!.user.id);
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
+  const orders = await findOrdersByUser(userId);
+
   const dateFmt = new Intl.DateTimeFormat(locale === "ka" ? "ka-GE" : "en-US", {
-    dateStyle: "medium",
+    dateStyle: "long",
   });
+  const monthYear = new Intl.DateTimeFormat(
+    locale === "ka" ? "ka-GE" : "en-US",
+    { month: "long", year: "numeric" },
+  );
+
+  const rows: OrderRow[] = orders.map((order) => ({
+    id: order.id,
+    reference: orderReference(order.id),
+    date: dateFmt.format(order.createdAt),
+    total: formatPrice(order.total, order.region),
+    paymentStatus: order.paymentStatus,
+    fulfillmentStatus: order.fulfillmentStatus,
+    tracking: order.trackingNumber,
+    shipTo: addressLines(
+      {
+        fullName: order.shipName,
+        line1: order.shipLine1,
+        line2: order.shipLine2,
+        city: order.shipCity,
+        postalCode: order.shipPostalCode,
+        country: order.shipCountry,
+        phone: null,
+      },
+      locale,
+    ),
+    items: order.items.map((item) => {
+      const image = orderItemImage(item);
+      return {
+        id: item.id,
+        name: item.nameSnapshot,
+        variant: [
+          item.variantLabel,
+          item.engraving ? `“${item.engraving}”` : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        quantity: item.quantity,
+        total: formatPrice(item.unitPrice * item.quantity, order.region),
+        image: image?.url ?? null,
+        alt: image?.alt ?? item.nameSnapshot,
+      };
+    }),
+  }));
+
+  // Totalled in the currency the orders were charged in, not the one being
+  // browsed in — see `dominantOrderRegion`.
+  const spentRegion = dominantOrderRegion(orders) ?? region;
+  const stats = orderHistoryStats(orders, spentRegion);
+  const since = firstOrderDate(orders);
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-8">
-      <h1 className="text-2xl font-semibold">{t("ordersTitle")}</h1>
-
-      {orders.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("noOrders")}</p>
-      ) : (
-        <ul className="flex flex-col gap-4">
-          {orders.map((order) => (
-            <li key={order.id} className="rounded-lg border p-4 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="font-medium">
-                  {t("orderNumber", { id: order.id.slice(0, 8).toUpperCase() })}
-                </span>
-                <span className="text-muted-foreground">
-                  {dateFmt.format(order.createdAt)}
-                </span>
-              </div>
-
-              <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground">
-                <span className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                  {t(`paymentStatus.${order.paymentStatus}`)}
-                </span>
-                <span className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                  {t(`fulfillmentStatus.${order.fulfillmentStatus}`)}
-                </span>
-              </div>
-
-              <ul className="mt-3 space-y-0.5">
-                {order.items.map((item) => (
-                  <li key={item.id} className="text-muted-foreground">
-                    {item.quantity}× {item.nameSnapshot}
-                  </li>
-                ))}
-              </ul>
-
-              <p className="mt-3 font-medium tabular-nums">
-                {formatMoney(order.total, order.region, locale)}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+    <OrdersList
+      orders={rows}
+      title={t("ordersTitle")}
+      meta={
+        orders.length === 0
+          ? t("ordersMetaEmpty")
+          : t("ordersMeta", {
+              count: stats.orders,
+              spent: formatPrice(stats.spent, spentRegion),
+              since: since ? monthYear.format(since) : "",
+            })
+      }
+    />
   );
 }

@@ -1,14 +1,22 @@
 import { ChevronIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
-/** Micro label — 10px, caps, +20% tracking. The house's smallest voice. */
+/**
+ * Micro label — 10px, caps, +20% tracking. The house's smallest voice.
+ *
+ * `as` exists because the same voice is used for a section heading and for a
+ * plain caption, and only one of those should be in the document outline.
+ */
 export function MicroLabel({
+  as: Tag = "div",
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.HTMLAttributes<HTMLElement> & {
+  as?: "div" | "span" | "h2" | "h3";
+}) {
   return (
-    <div
+    <Tag
       className={cn(
         "text-[10px] uppercase tracking-[0.2em] text-ink-500",
         className,
@@ -16,7 +24,7 @@ export function MicroLabel({
       {...props}
     >
       {children}
-    </div>
+    </Tag>
   );
 }
 
@@ -37,7 +45,8 @@ export function Field({
   label: string;
   hint?: React.ReactNode;
   error?: React.ReactNode;
-  optional?: boolean;
+  /** `true` marks the field with the house dot; a node spells the word out. */
+  optional?: boolean | React.ReactNode;
 }) {
   const fieldId = id ?? name;
   return (
@@ -46,7 +55,7 @@ export function Field({
         {label}
         {optional ? (
           <span className="ml-1.5 normal-case tracking-normal text-ink-400">
-            ·
+            {optional === true ? "·" : optional}
           </span>
         ) : null}
       </span>

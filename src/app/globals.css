@@ -220,3 +220,28 @@
     display: none;
   }
 }
+
+/**
+ * A page that is meant to be printed — an invoice — marks its document with
+ * `data-print-root`. Printing then drops the shop around it (header, side nav,
+ * footer, the print button itself) and puts the document on the paper alone.
+ */
+@media print {
+  body:has([data-print-root]) * {
+    visibility: hidden;
+  }
+  body:has([data-print-root]) [data-print-root],
+  body:has([data-print-root]) [data-print-root] * {
+    visibility: visible;
+  }
+  [data-print-root] {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    padding: 0;
+    border: 0;
+  }
+  [data-print-hide] {
+    display: none !important;
+  }
+}

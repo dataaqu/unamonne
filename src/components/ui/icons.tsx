@@ -146,6 +146,25 @@ export function BoxIcon(props: IconProps) {
   );
 }
 
+export function PinIcon(props: IconProps) {
+  return (
+    <svg {...base(props)} strokeLinejoin="round">
+      <path d="M12 21s6.5-6 6.5-11a6.5 6.5 0 1 0-13 0C5.5 15 12 21 12 21Z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </svg>
+  );
+}
+
+/** Door with an arrow leaving it — sign out. */
+export function SignOutIcon(props: IconProps) {
+  return (
+    <svg {...base(props)} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 5H6v14h9" />
+      <path d="M13 12h8m-3-3 3 3-3 3" />
+    </svg>
+  );
+}
+
 export function GridIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

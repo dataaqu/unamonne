@@ -138,13 +138,91 @@ export function orderLinesFromCart(
 /**
  * A customer's order history, newest first, with lines. Scoped to `userId` in
  * the query, so it can only ever return that user's own orders (T3.7).
+ *
+ * Line items carry their product's images so the history can show the piece
+ * rather than only its frozen name. The product may be gone (`set null` on
+ * delete) — the snapshot on the line is what makes the row printable either way.
  */
 export function findOrdersByUser(userId: string) {
   return db.query.orders.findMany({
     where: eq(orders.userId, userId),
-    with: { items: true },
+    with: { items: { with: { product: { with: { images: true } } } } },
     orderBy: [desc(orders.createdAt)],
   });
+}
+
+export type UserOrder = Awaited<ReturnType<typeof findOrdersByUser>>[number];
+
+/** A public order reference, short enough to read down a phone line. */
+export function orderReference(id: string): string {
+  return id.slice(0, 8).toUpperCase();
+}
+
+/** The first catalog image of an order line, or null once the product is gone. */
+export function orderItemImage(
+  item: UserOrder["items"][number],
+): { url: string; alt: string | null } | null {
+  const image = [...(item.product?.images ?? [])].sort(
+    (a, b) => a.sortOrder - b.sortOrder,
+  )[0];
+  return image ? { url: image.url, alt: image.alt } : null;
+}
+
+/**
+ * Order-history headline figures: how many orders, how much has been spent and
+ * how many pieces are actually owned. Only paid orders count towards the last
+ * two — a refunded order was unwound, and a pending one has not happened yet.
+ *
+ * `spent` is summed for one region at a time. An order is charged in the
+ * currency frozen on it, and adding GEL to USD would produce a number that is
+ * true in no currency at all.
+ */
+export function orderHistoryStats(
+  list: readonly {
+    total: number;
+    region: Region;
+    paymentStatus: string;
+    items: readonly { quantity: number }[];
+  }[],
+  region?: Region,
+) {
+  const paid = list.filter((order) => order.paymentStatus === "paid");
+  return {
+    orders: list.length,
+    spent: paid
+      .filter((order) => region === undefined || order.region === region)
+      .reduce((sum, order) => sum + order.total, 0),
+    pieces: paid.reduce(
+      (sum, order) =>
+        sum + order.items.reduce((n, item) => n + item.quantity, 0),
+      0,
+    ),
+  };
+}
+
+/**
+ * The region a customer's history should be totalled in: the one most of their
+ * paid orders were charged in, newest breaking a tie. Reading it off the orders
+ * rather than off the active region matters — a shopper browsing in $ who has
+ * only ever paid in ₾ must not be told they have spent $0.
+ */
+export function dominantOrderRegion(
+  list: readonly { region: Region; paymentStatus: string }[],
+): Region | null {
+  const paid = list.filter((order) => order.paymentStatus === "paid");
+  if (paid.length === 0) return null;
+
+  const ge = paid.filter((order) => order.region === "GE").length;
+  const intl = paid.length - ge;
+  if (ge === intl) return paid[0]!.region;
+  return ge > intl ? "GE" : "INTL";
+}
+
+/** The earliest order in a list (the list itself is newest-first). */
+export function firstOrderDate(
+  list: readonly { createdAt: Date }[],
+): Date | null {
+  return list.length > 0 ? list[list.length - 1]!.createdAt : null;
 }
 
 /**

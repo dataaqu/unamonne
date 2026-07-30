@@ -15,9 +15,16 @@ import {
   type AddressFormValues,
 } from "./address-schema";
 
-function afterWrite(locale: string): never {
+/**
+ * Finish a write. The address book edits in place — the form is a dialog on the
+ * list, so the action returns and the dialog closes itself. The standalone
+ * /new and /edit pages (the no-JavaScript path) post `redirectTo` and are sent
+ * back to the list instead.
+ */
+function afterWrite(locale: string, redirectBack: boolean): AccountFormState {
   revalidatePath(`/${locale}/account/addresses`);
-  redirect(`/${locale}/account/addresses`);
+  if (redirectBack) redirect(`/${locale}/account/addresses`);
+  return { ok: true };
 }
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -69,7 +76,7 @@ export async function createAddress(
     await tx.insert(addresses).values(values(userId, parsed.data, makeDefault));
   });
 
-  afterWrite(locale);
+  return afterWrite(locale, formData.get("redirectTo") != null);
 }
 
 export async function updateAddress(
@@ -102,7 +109,7 @@ export async function updateAddress(
       .where(and(eq(addresses.id, id), eq(addresses.userId, userId)));
   });
 
-  afterWrite(locale);
+  return afterWrite(locale, formData.get("redirectTo") != null);
 }
 
 export async function setDefaultAddress(formData: FormData): Promise<void> {

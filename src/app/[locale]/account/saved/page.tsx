@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { AccountHeader } from "@/components/account/account-header";
 import { ProductCard } from "@/components/shop/product-card";
 import { BtnLink } from "@/components/ui/btn";
 import { HeartIcon } from "@/components/ui/icons";
@@ -28,11 +29,14 @@ export default async function SavedPage() {
 
   return (
     <div>
-      <h1 className="text-3xl tracking-[-0.025em]">{t("savedTitle")}</h1>
+      <AccountHeader
+        title={t("savedTitle")}
+        meta={t("savedMeta", { count: products.length })}
+      />
 
       {products.length === 0 ? (
         <EmptyState
-          className="mt-8"
+          className="mt-10"
           icon={<HeartIcon className="h-6 w-6" />}
           title={t("noSaved")}
           action={

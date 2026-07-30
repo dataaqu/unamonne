@@ -72,6 +72,10 @@ export function AddressForm({
   return (
     <form action={formAction} className="max-w-xl space-y-5">
       <input type="hidden" name="locale" value={locale} />
+      {/* The standalone pages go back to the list after a write; the dialog on
+          the list itself does not, so the flag is set here rather than in the
+          action. */}
+      <input type="hidden" name="redirectTo" value="1" />
       {initial.id ? <input type="hidden" name="id" value={initial.id} /> : null}
 
       {TEXT_FIELDS.map((field) => (

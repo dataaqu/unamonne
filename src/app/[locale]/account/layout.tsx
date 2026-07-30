@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { logoutAction } from "@/app/[locale]/(auth)/actions";
 import { AccountNav } from "@/components/account/account-nav";
 import { SiteChrome } from "@/components/layout/site-chrome";
+import { MicroLabel } from "@/components/ui/field";
+import { SignOutIcon } from "@/components/ui/icons";
 import { auth } from "@/lib/auth";
 
 /**
@@ -28,14 +31,22 @@ export default async function AccountLayout({
 
   return (
     <SiteChrome locale={locale} footer="slim">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-8 px-6 py-10 lg:flex-row lg:gap-14 lg:px-10">
-        <aside className="lg:w-56 lg:shrink-0">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink-500">
-            {t("title")}
-          </p>
+      <div className="mx-auto grid w-full max-w-[1600px] gap-10 px-6 py-12 lg:grid-cols-[220px_1fr] lg:gap-16 lg:px-10">
+        <aside>
+          <MicroLabel>{t("title")}</MicroLabel>
           <AccountNav />
+          {/* A plain form, so signing out works with no client JavaScript. */}
+          <form action={logoutAction} className="mt-6 border-t border-ink-200">
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 px-3 pt-5 text-[13px] text-ink-500 transition-colors hover:text-ink-900"
+            >
+              <SignOutIcon className="h-4 w-4" />
+              {t("signOut")}
+            </button>
+          </form>
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0">{children}</div>
       </div>
     </SiteChrome>
   );
