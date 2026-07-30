@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { BRAND, LOCKUP } from "@/lib/brand";
 import { WORDMARK } from "@/lib/brand-wordmark";
 import { cn } from "@/lib/utils";
@@ -15,9 +15,10 @@ gsap.registerPlugin(useGSAP);
 const SIZES = { sm: 48, md: 56, lg: 62 } as const;
 
 /**
- * The lockup writes itself at most once per page load. The header re-renders on
- * every client-side navigation, and a logo that redrew itself on every click
- * would stop being a logo and start being a distraction.
+ * Arriving at the home page is arriving at the shop, so the lockup writes
+ * itself every time — it is the moment the house introduces itself. Everywhere
+ * else it plays once and then stays put: a logo that redrew itself on every
+ * click would stop being a logo and start being a distraction.
  */
 let hasPlayed = false;
 
@@ -37,13 +38,16 @@ export function BrandMark({
   className?: string;
 }) {
   const root = useRef<HTMLElement>(null);
+  const pathname = usePathname();
+  const atHome = pathname === "/";
 
   const mark = SIZES[size];
   const wordWidth = mark * LOCKUP.wordWidth;
 
   useGSAP(
     () => {
-      if (!animate || hasPlayed) return;
+      if (!animate) return;
+      if (hasPlayed && !atHome) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
       hasPlayed = true;
@@ -92,7 +96,10 @@ export function BrandMark({
       observer.observe(html, { attributeFilter: ["data-loader"] });
       return () => observer.disconnect();
     },
-    { scope: root },
+    // Re-runs on every navigation, reverting what the last run left behind, so
+    // coming back to the home page is a fresh introduction rather than a
+    // logo that has already had its moment.
+    { scope: root, dependencies: [pathname], revertOnUpdate: true },
   );
 
   const wordmark = tone === "light" ? "wordmark" : "wordmark-ink";
