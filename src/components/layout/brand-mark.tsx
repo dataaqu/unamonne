@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 gsap.registerPlugin(useGSAP);
 
 /** Mark width in pixels; the rest of the lockup follows from `LOCKUP`. */
-const SIZES = { sm: 36, md: 44, lg: 52 } as const;
+const SIZES = { sm: 48, md: 56, lg: 62 } as const;
 
 /**
  * The lockup writes itself at most once per page load. The header re-renders on

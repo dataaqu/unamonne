@@ -32,7 +32,7 @@ export default async function AdminLayout({
   const t = await getTranslations("Admin");
 
   return (
-    <SiteChrome locale={locale} footer="slim" announcement={false}>
+    <SiteChrome locale={locale} footer="slim">
       <div className="mx-auto flex w-full max-w-[1600px] flex-1 px-6 lg:px-10">
         <aside className="hidden w-56 shrink-0 border-r border-ink-200 py-8 pr-6 sm:block">
           <p className="mb-4 text-[10px] uppercase tracking-[0.2em] text-ink-500">

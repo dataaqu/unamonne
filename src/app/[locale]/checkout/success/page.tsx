@@ -73,7 +73,7 @@ export default async function CheckoutSuccessPage({
   ];
 
   return (
-    <SiteChrome locale={locale} header="slim" announcement={false}>
+    <SiteChrome locale={locale} header="slim">
       {/* confirmation */}
       <section className="grid lg:grid-cols-[1.15fr_1fr]">
         <div className="px-6 py-16 lg:px-10 lg:py-24">

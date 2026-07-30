@@ -59,7 +59,6 @@ export default async function CheckoutPage() {
       locale={locale}
       header="slim"
       footer="slim"
-      announcement={false}
     >
       {/* step rail */}
       <div className="border-b border-ink-200 px-6 py-4 lg:px-10">

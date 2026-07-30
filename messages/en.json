@@ -599,8 +599,7 @@
     "journal": "Journal",
     "account": "Account",
     "bag": "Bag",
-    "secureCheckout": "Secure checkout",
-    "freeShipping": "Free shipping over {amount}"
+    "secureCheckout": "Secure checkout"
   },
   "Footer": {
     "studio": "Handmade jewellery from Tbilisi. Studio 4, Vera — open Thursday to Saturday, 12–7.",

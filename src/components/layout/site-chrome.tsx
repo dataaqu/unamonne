@@ -1,4 +1,3 @@
-import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter, type FooterVariant } from "@/components/layout/site-footer";
 import {
   SiteHeader,
@@ -17,7 +16,6 @@ export function SiteChrome({
   header = "solid",
   footer = "full",
   section = null,
-  announcement = true,
   searchQuery,
   locale,
   children,
@@ -25,7 +23,6 @@ export function SiteChrome({
   header?: HeaderVariant;
   footer?: FooterVariant;
   section?: HeaderSection;
-  announcement?: boolean;
   searchQuery?: string;
   locale: string;
   children: React.ReactNode;
@@ -41,11 +38,9 @@ export function SiteChrome({
 
   return (
     <>
-      {announcement ? <AnnouncementBar /> : null}
       {header === "transparent" ? (
         // The transparent header is positioned against the page body, not the
-        // viewport, so it lands on the campaign image rather than over the
-        // announcement bar above it.
+        // viewport, so it lands on the campaign image rather than above it.
         <div className="relative flex flex-1 flex-col">
           {nav}
           <main className="flex flex-1 flex-col">{children}</main>
