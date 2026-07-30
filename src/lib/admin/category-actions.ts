@@ -7,13 +7,14 @@ import { redirect } from "next/navigation";
 import { slugify } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { categories, categoryTranslations } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { categoryFormSchema, extractCategoryForm } from "./category-schema";
 import { requireAdmin, type AdminFormState } from "./form";
 
 function afterWrite(locale: string): never {
-  revalidatePath(`/${locale}/admin/categories`);
-  redirect(`/${locale}/admin/categories`);
+  revalidatePath(localePath(locale, "/admin/categories"));
+  redirect(localePath(locale, "/admin/categories"));
 }
 
 export async function createCategory(
@@ -118,5 +119,5 @@ export async function deleteCategory(formData: FormData): Promise<void> {
   if (id) {
     await db.delete(categories).where(eq(categories.id, id));
   }
-  revalidatePath(`/${locale}/admin/categories`);
+  revalidatePath(localePath(locale, "/admin/categories"));
 }

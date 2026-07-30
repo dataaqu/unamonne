@@ -6,13 +6,14 @@ import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
 import { discountCodes } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { discountFormSchema, extractDiscountForm } from "./discount-schema";
 import { requireAdmin, type AdminFormState } from "./form";
 
 function afterWrite(locale: string): never {
-  revalidatePath(`/${locale}/admin/discounts`);
-  redirect(`/${locale}/admin/discounts`);
+  revalidatePath(localePath(locale, "/admin/discounts"));
+  redirect(localePath(locale, "/admin/discounts"));
 }
 
 export async function createDiscount(
@@ -71,5 +72,5 @@ export async function deleteDiscount(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const locale = String(formData.get("locale") ?? "ka");
   if (id) await db.delete(discountCodes).where(eq(discountCodes.id, id));
-  revalidatePath(`/${locale}/admin/discounts`);
+  revalidatePath(localePath(locale, "/admin/discounts"));
 }

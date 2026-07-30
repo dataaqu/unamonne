@@ -7,6 +7,7 @@ import { SiteChrome } from "@/components/layout/site-chrome";
 import { MicroLabel } from "@/components/ui/field";
 import { SignOutIcon } from "@/components/ui/icons";
 import { auth } from "@/lib/auth";
+import { localePath } from "@/i18n/navigation";
 
 /**
  * Customer account shell + guard. Any signed-in user may reach their own
@@ -24,7 +25,7 @@ export default async function AccountLayout({
   const session = await auth();
 
   if (!session?.user) {
-    redirect(`/${locale}/login`);
+    redirect(localePath(locale, "/login"));
   }
 
   const t = await getTranslations("Account");

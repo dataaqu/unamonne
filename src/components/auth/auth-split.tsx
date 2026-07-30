@@ -1,8 +1,8 @@
-import NextLink from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { AuthLocaleLinks } from "@/components/auth/auth-locale-links";
 import { BrandMark } from "@/components/layout/brand-mark";
+import { Link } from "@/i18n/navigation";
 import { BRAND } from "@/lib/brand";
 import { getVisibleProducts } from "@/lib/shop";
 import { cn } from "@/lib/utils";
@@ -102,12 +102,12 @@ export async function AuthSplit({
       <div className="flex flex-col px-6 py-10 sm:px-10 lg:min-h-[820px] lg:px-16 lg:py-12">
         <div className="flex items-center justify-between gap-6">
           <BrandMark />
-          <NextLink
+          <Link
             href="/"
             className="text-[11px] uppercase tracking-[0.16em] text-ink-500 transition-colors hover:text-ink-900"
           >
             {t("backToShop")}
-          </NextLink>
+          </Link>
         </div>
 
         <div className="flex flex-1 flex-col justify-center py-14">

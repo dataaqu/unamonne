@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { requireAdmin, type AdminFormState } from "./form";
 import { extractOrderUpdate, orderUpdateSchema } from "./order-schema";
@@ -38,7 +39,7 @@ export async function updateOrderFulfillment(
     })
     .where(eq(orders.id, id));
 
-  revalidatePath(`/${locale}/admin/orders/${id}`);
-  revalidatePath(`/${locale}/admin/orders`);
+  revalidatePath(localePath(locale, `/admin/orders/${id}`));
+  revalidatePath(localePath(locale, "/admin/orders"));
   return { ok: true };
 }

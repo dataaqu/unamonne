@@ -38,14 +38,14 @@ describe("sitemap", () => {
     expect(entries).toHaveLength(3);
     expect(entries.some((e) => e.url.endsWith("/shop"))).toBe(true);
 
-    // The home page is one address in both languages, so it has no hreflang
-    // pair; everything else does.
-    const [home, ...localized] = entries;
-    expect(home.url).toMatch(/\/$/);
-    expect(home.alternates).toBeUndefined();
-    for (const entry of localized) {
-      expect(Object.keys(entry.alternates?.languages ?? {})).toContain("en");
-      expect(Object.keys(entry.alternates?.languages ?? {})).toContain("ka");
+    // Every entry carries both languages, and Georgian is the unprefixed one.
+    for (const entry of entries) {
+      const languages = entry.alternates?.languages ?? {};
+      expect(Object.keys(languages)).toContain("en");
+      expect(Object.keys(languages)).toContain("ka");
+      expect(String(languages.en)).toMatch(/\/en(\/|$)/);
+      expect(String(languages.ka)).not.toMatch(/\/ka(\/|$)/);
+      expect(entry.url).toBe(languages.ka);
     }
   });
 });

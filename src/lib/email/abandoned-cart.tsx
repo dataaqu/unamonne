@@ -1,4 +1,5 @@
 import type { RecoveryMailer } from "@/lib/abandoned-cart";
+import { localePath } from "@/i18n/navigation";
 
 import { appUrl, sendEmail } from "./client";
 import { AbandonedCartOfferEmail } from "./templates/abandoned-cart-offer";
@@ -22,7 +23,7 @@ export const resendRecoveryMailer: RecoveryMailer = async ({
   if (!email) return;
 
   const locale = "en" as const;
-  const cartUrl = `${appUrl()}/${locale}/cart`;
+  const cartUrl = `${appUrl()}${localePath(locale, "/cart")}`;
 
   await sendEmail({
     to: email,

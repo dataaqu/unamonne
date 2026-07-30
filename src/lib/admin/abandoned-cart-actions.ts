@@ -7,6 +7,7 @@ import { makeOfferCode } from "@/lib/abandoned-cart";
 import { db } from "@/lib/db";
 import { abandonedCartEmails, carts } from "@/lib/db/schema";
 import { resendRecoveryMailer } from "@/lib/email/abandoned-cart";
+import { localePath } from "@/i18n/navigation";
 
 import { requireAdmin } from "./form";
 
@@ -40,5 +41,5 @@ export async function sendOfferEmail(formData: FormData): Promise<void> {
 
   await resendRecoveryMailer({ cartId, email: cart.email, offerCode });
 
-  revalidatePath(`/${locale}/admin/abandoned-carts`);
+  revalidatePath(localePath(locale, "/admin/abandoned-carts"));
 }

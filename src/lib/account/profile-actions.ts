@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { requireUserId, type AccountFormState } from "./form";
 import { extractProfileForm, profileFormSchema } from "./profile-schema";
@@ -36,6 +37,6 @@ export async function updateProfileAction(
     })
     .where(eq(users.id, userId));
 
-  revalidatePath(`/${locale}/account`);
+  revalidatePath(localePath(locale, "/account"));
   return { ok: true };
 }

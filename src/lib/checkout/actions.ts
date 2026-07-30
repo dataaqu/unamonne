@@ -12,6 +12,7 @@ import { paymentProviderForRegion } from "@/lib/payments/provider";
 import { createStripeCheckout } from "@/lib/payments/stripe";
 import { getRegion } from "@/lib/region";
 import { getShippingZones, quoteShipping } from "@/lib/shipping";
+import { localePath } from "@/i18n/navigation";
 
 import { checkoutSchema, extractCheckout } from "./schema";
 
@@ -90,8 +91,8 @@ export async function startCheckout(
   if (discount) await recordRedemption(discount.code);
 
   const base = appUrl();
-  const successUrl = `${base}/${locale}/checkout/success?order=${orderId}`;
-  const cancelUrl = `${base}/${locale}/cart`;
+  const successUrl = `${base}${localePath(locale, "/checkout/success")}?order=${orderId}`;
+  const cancelUrl = `${base}${localePath(locale, "/cart")}`;
 
   let url: string;
   try {

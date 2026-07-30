@@ -1,6 +1,7 @@
 import type { Locale } from "@/i18n/routing";
 import { appUrl, sendEmail } from "@/lib/email/client";
 import { PasswordResetEmail } from "@/lib/email/templates/password-reset";
+import { localePath } from "@/i18n/navigation";
 
 const SUBJECT = {
   en: "Reset your password",
@@ -11,7 +12,7 @@ const VALID_FOR = { en: "1 hour", ka: "1 საათი" } as const;
 
 /** The reset link a token turns into, in the locale the request came from. */
 export function passwordResetUrl(locale: Locale, token: string): string {
-  return `${appUrl()}/${locale}/reset-password?token=${encodeURIComponent(token)}`;
+  return `${appUrl()}${localePath(locale, "/reset-password")}?token=${encodeURIComponent(token)}`;
 }
 
 export async function sendPasswordResetEmail({

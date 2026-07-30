@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { CheckIcon } from "@/components/ui/icons";
+import { localePath } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import {
   cartLineVariantLabel,
@@ -37,7 +38,7 @@ export default async function CheckoutPage() {
   ]);
 
   if (!cart || cart.items.length === 0) {
-    redirect(`/${locale}/cart`);
+    redirect(localePath(locale, "/cart"));
   }
 
   const { subtotal } = cartTotals(cart, region);

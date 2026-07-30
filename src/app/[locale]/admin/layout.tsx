@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { auth } from "@/lib/auth";
+import { localePath } from "@/i18n/navigation";
 
 /**
  * Authoritative admin guard + panel shell. The guard is the real authorization
@@ -23,10 +24,10 @@ export default async function AdminLayout({
   const session = await auth();
 
   if (!session?.user) {
-    redirect(`/${locale}/login`);
+    redirect(localePath(locale, "/login"));
   }
   if (session.user.role !== "admin") {
-    redirect(`/${locale}`);
+    redirect(localePath(locale, "/"));
   }
 
   const t = await getTranslations("Admin");

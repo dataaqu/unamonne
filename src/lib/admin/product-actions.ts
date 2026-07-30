@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import { slugify } from "@/lib/catalog";
 import { db } from "@/lib/db";
+import { localePath } from "@/i18n/navigation";
 import {
   productImages,
   productSpecs,
@@ -23,8 +24,8 @@ import {
 import { requireAdmin, type AdminFormState } from "./form";
 
 function afterWrite(locale: string): never {
-  revalidatePath(`/${locale}/admin/products`);
-  redirect(`/${locale}/admin/products`);
+  revalidatePath(localePath(locale, "/admin/products"));
+  redirect(localePath(locale, "/admin/products"));
 }
 
 function readFlags(formData: FormData) {
@@ -261,5 +262,5 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   if (id) {
     await db.delete(products).where(eq(products.id, id));
   }
-  revalidatePath(`/${locale}/admin/products`);
+  revalidatePath(localePath(locale, "/admin/products"));
 }

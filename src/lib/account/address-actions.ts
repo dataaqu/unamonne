@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
 import { addresses } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { requireUserId, type AccountFormState } from "./form";
 import {
@@ -22,8 +23,8 @@ import {
  * back to the list instead.
  */
 function afterWrite(locale: string, redirectBack: boolean): AccountFormState {
-  revalidatePath(`/${locale}/account/addresses`);
-  if (redirectBack) redirect(`/${locale}/account/addresses`);
+  revalidatePath(localePath(locale, "/account/addresses"));
+  if (redirectBack) redirect(localePath(locale, "/account/addresses"));
   return { ok: true };
 }
 
@@ -126,7 +127,7 @@ export async function setDefaultAddress(formData: FormData): Promise<void> {
       .where(and(eq(addresses.id, id), eq(addresses.userId, userId)));
   });
 
-  revalidatePath(`/${locale}/account/addresses`);
+  revalidatePath(localePath(locale, "/account/addresses"));
 }
 
 export async function deleteAddress(formData: FormData): Promise<void> {
@@ -160,5 +161,5 @@ export async function deleteAddress(formData: FormData): Promise<void> {
     }
   });
 
-  revalidatePath(`/${locale}/account/addresses`);
+  revalidatePath(localePath(locale, "/account/addresses"));
 }

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { siteSettings } from "@/lib/db/schema";
 import { SETTING_KEYS } from "@/lib/settings";
+import { localePath } from "@/i18n/navigation";
 
 import { requireAdmin, type AdminFormState } from "./form";
 
@@ -39,6 +40,6 @@ export async function saveSettings(
 
   // The campaign shot is on the homepage and the catalogue head, both rendered
   // under the locale layout — revalidate broadly rather than guess.
-  revalidatePath(`/${locale}`, "layout");
+  revalidatePath(localePath(locale, "/"), "layout");
   return { ok: true };
 }

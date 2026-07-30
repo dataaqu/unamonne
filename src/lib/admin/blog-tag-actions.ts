@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { slugify } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { blogTagTranslations, blogTags } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { requireAdmin, type AdminFormState } from "./form";
 
@@ -74,7 +75,7 @@ export async function saveBlogTag(
     return { ok: false, fieldErrors: { nameKa: ["TAKEN"] } };
   }
 
-  revalidatePath(`/${locale}/admin/blog/tags`);
+  revalidatePath(localePath(locale, "/admin/blog/tags"));
   return { ok: true };
 }
 
@@ -83,5 +84,5 @@ export async function deleteBlogTag(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const locale = String(formData.get("locale") ?? "ka");
   if (id) await db.delete(blogTags).where(eq(blogTags.id, id));
-  revalidatePath(`/${locale}/admin/blog/tags`);
+  revalidatePath(localePath(locale, "/admin/blog/tags"));
 }

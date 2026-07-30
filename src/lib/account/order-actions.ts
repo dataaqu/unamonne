@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { addToCartAction } from "@/lib/cart-actions";
 import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { requireUserId } from "./form";
 
@@ -52,5 +53,5 @@ export async function reorderAction(formData: FormData): Promise<void> {
     await addToCartAction(undefined, line);
   }
 
-  redirect(`/${locale}/cart`);
+  redirect(localePath(locale, "/cart"));
 }

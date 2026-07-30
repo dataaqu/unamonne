@@ -7,8 +7,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Private + non-indexable areas.
-      disallow: ["/api/", "/*/admin", "/*/account", "/*/checkout"],
+      // Private + non-indexable areas. Georgian is unprefixed and English is
+      // not, so each one is named twice.
+      disallow: [
+        "/api/",
+        "/admin",
+        "/account",
+        "/checkout",
+        "/*/admin",
+        "/*/account",
+        "/*/checkout",
+      ],
     },
     sitemap: `${appUrl()}/sitemap.xml`,
   };

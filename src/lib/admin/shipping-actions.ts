@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
 import { shippingRates, shippingZones } from "@/lib/db/schema";
+import { localePath } from "@/i18n/navigation";
 
 import { requireAdmin, type AdminFormState } from "./form";
 import {
@@ -16,8 +17,8 @@ import {
 } from "./shipping-schema";
 
 function afterWrite(locale: string): never {
-  revalidatePath(`/${locale}/admin/shipping`);
-  redirect(`/${locale}/admin/shipping`);
+  revalidatePath(localePath(locale, "/admin/shipping"));
+  redirect(localePath(locale, "/admin/shipping"));
 }
 
 type RateInput = { currency: "GEL" | "USD"; rate: number | ""; free: number | "" };
@@ -175,5 +176,5 @@ export async function deleteZone(formData: FormData): Promise<void> {
     // Rates cascade with the zone.
     await db.delete(shippingZones).where(eq(shippingZones.id, id));
   }
-  revalidatePath(`/${locale}/admin/shipping`);
+  revalidatePath(localePath(locale, "/admin/shipping"));
 }

@@ -4,9 +4,8 @@ import { eq } from "drizzle-orm";
 import { routing } from "@/i18n/routing";
 import { findPublishedPosts } from "@/lib/blog";
 import { db } from "@/lib/db";
-import { appUrl } from "@/lib/email/client";
 import { products } from "@/lib/db/schema";
-import { homeUrl } from "@/lib/seo/metadata";
+import { localizedUrl } from "@/lib/seo/metadata";
 
 // Needs the database for posts/products; don't try to prerender at build.
 export const dynamic = "force-dynamic";
@@ -16,14 +15,14 @@ type Entry = MetadataRoute.Sitemap[number];
 function languagesFor(path: string): Record<string, string> {
   const languages: Record<string, string> = {};
   for (const locale of routing.locales) {
-    languages[locale] = `${appUrl()}/${locale}${path}`;
+    languages[locale] = localizedUrl(locale, path);
   }
   return languages;
 }
 
 function staticEntry(path: string): Entry {
   return {
-    url: `${appUrl()}/${routing.defaultLocale}${path}`,
+    url: localizedUrl(routing.defaultLocale, path),
     alternates: { languages: languagesFor(path) },
   };
 }
@@ -41,25 +40,20 @@ function localizedEntry(
   if (translations.length === 0) return null;
   const languages: Record<string, string> = {};
   for (const tr of translations) {
-    languages[tr.locale] = `${appUrl()}/${tr.locale}${prefix}/${tr.slug}`;
+    languages[tr.locale] = localizedUrl(tr.locale, `${prefix}/${tr.slug}`);
   }
   const primary =
     translations.find((t) => t.locale === routing.defaultLocale) ??
     translations[0];
   return {
-    url: `${appUrl()}/${primary.locale}${prefix}/${primary.slug}`,
+    url: localizedUrl(primary.locale, `${prefix}/${primary.slug}`),
     lastModified: lastModified ?? undefined,
     alternates: { languages },
   };
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // The home page has no locale in its address and so no hreflang pair; the
-  // rest of the static routes do.
-  const entries: Entry[] = [
-    { url: homeUrl() },
-    ...["/shop", "/blog"].map(staticEntry),
-  ];
+  const entries: Entry[] = ["", "/shop", "/blog"].map(staticEntry);
 
   // The database may not be provisioned yet — the static routes above are still
   // a valid sitemap, so a failure here degrades rather than breaks the route.

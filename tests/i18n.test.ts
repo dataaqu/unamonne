@@ -8,7 +8,8 @@ describe("i18n routing", () => {
   it("supports ka + en with ka as default", () => {
     expect(routing.locales).toEqual(["ka", "en"]);
     expect(routing.defaultLocale).toBe("ka");
-    expect(routing.localePrefix).toBe("always");
+    // Georgian is the bare address; English carries the prefix.
+    expect(routing.localePrefix).toBe("as-needed");
   });
 
   it("keeps message catalogs structurally in sync", () => {

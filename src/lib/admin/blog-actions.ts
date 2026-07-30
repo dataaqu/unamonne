@@ -8,6 +8,7 @@ import { slugify } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { blogPostTags, blogPostTranslations, blogPosts } from "@/lib/db/schema";
 import { scoreSeo } from "@/lib/seo/scorer";
+import { localePath } from "@/i18n/navigation";
 
 import {
   blogPostFormSchema,
@@ -18,8 +19,8 @@ import {
 import { requireAdmin, type AdminFormState } from "./form";
 
 function afterWrite(locale: string): never {
-  revalidatePath(`/${locale}/admin/blog`);
-  redirect(`/${locale}/admin/blog`);
+  revalidatePath(localePath(locale, "/admin/blog"));
+  redirect(localePath(locale, "/admin/blog"));
 }
 
 type LocaleTranslation = {
@@ -244,5 +245,5 @@ export async function deletePost(formData: FormData): Promise<void> {
   if (id) {
     await db.delete(blogPosts).where(eq(blogPosts.id, id));
   }
-  revalidatePath(`/${locale}/admin/blog`);
+  revalidatePath(localePath(locale, "/admin/blog"));
 }
