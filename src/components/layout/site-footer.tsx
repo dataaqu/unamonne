@@ -41,7 +41,7 @@ export async function SiteFooter({
   // Read at render, not written into the source, so the notice ages with the
   // shop rather than with the commit that last touched this file.
   const year = new Date().getFullYear();
-  const notice = `© ${year} ${BRAND.legalName} · ${BRAND.city} · ${t("rights")}`;
+  const notice = `© ${year} ${t("rights")}`;
 
   if (variant === "slim") {
     return (
