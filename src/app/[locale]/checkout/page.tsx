@@ -54,12 +54,11 @@ export default async function CheckoutPage() {
 
   const payable = subtotal - (discount?.amount ?? 0);
 
+  // The house chrome, not a stripped one: a shopper who wants to check a piece,
+  // a size or a delivery promise before paying has to be able to leave and come
+  // back, and a checkout with no way out is a checkout people abandon.
   return (
-    <SiteChrome
-      locale={locale}
-      header="slim"
-      footer="slim"
-    >
+    <SiteChrome locale={locale}>
       {/* step rail */}
       <div className="border-b border-ink-200 px-6 py-4 lg:px-10">
         <ol className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.16em]">
