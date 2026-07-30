@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Noto_Sans_Georgian } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -15,11 +16,37 @@ import { organizationJsonLd } from "@/lib/seo/jsonld";
 import "../globals.css";
 
 /**
- * Helvetica Neue carries the Latin type (a system face, so nothing to load);
- * Georgian falls through to Noto Sans Georgian, and numerals in code-like
- * positions (order ids, SKUs) use IBM Plex Mono. See the `--font-sans` /
- * `--font-mono` stacks in globals.css.
+ * Helvetica Neue LT GEO is the house's own cut: one family carrying both the
+ * Latin and the Georgian, so a Georgian sentence is set in the brand's face
+ * rather than in whatever the device happens to have. Only the three weights
+ * the interface actually uses are shipped — the house sets everything at
+ * regular, and light and medium cover the two places it departs from that.
+ *
+ * Noto Sans Georgian stays in the stack behind it as the fallback, and numerals
+ * in code-like positions (order ids, SKUs) use IBM Plex Mono. See the
+ * `--font-sans` / `--font-mono` stacks in globals.css.
  */
+const brandSans = localFont({
+  variable: "--font-brand",
+  display: "swap",
+  src: [
+    {
+      path: "../../../public/fonts/Helvetica Neue LT GEO 45 Light.ttf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../../public/fonts/Helvetica Neue LT GEO 55 Roman.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../../public/fonts/Helvetica Neue LT GEO 65 Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+  ],
+});
 const notoGeorgian = Noto_Sans_Georgian({
   variable: "--font-noto-georgian",
   subsets: ["georgian", "latin"],
@@ -80,7 +107,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${notoGeorgian.variable} ${plexMono.variable} h-full`}
+      className={`${brandSans.variable} ${notoGeorgian.variable} ${plexMono.variable} h-full`}
       // The loader's pre-paint script stamps `data-loader` here before React
       // hydrates, which is the whole point of it — the attribute has to exist
       // before the first frame, so it can never match the server HTML.

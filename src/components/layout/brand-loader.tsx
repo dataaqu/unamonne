@@ -4,8 +4,6 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
-import { BRAND } from "@/lib/brand";
-
 gsap.registerPlugin(useGSAP);
 
 /**
@@ -32,7 +30,7 @@ export function BrandLoader() {
   const lockup = useRef<HTMLDivElement>(null);
   const moon = useRef<HTMLImageElement>(null);
   const wordWrap = useRef<HTMLDivElement>(null);
-  const word = useRef<HTMLSpanElement>(null);
+  const word = useRef<HTMLImageElement>(null);
   const rule = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -98,39 +96,42 @@ export function BrandLoader() {
           .from(moon.current, {
             autoAlpha: 0,
             scale: 0.9,
-            duration: 0.8,
+            duration: 1.05,
             ease: "power2.out",
           })
           // and turns into the moon it always was
           .to(
             moon.current,
-            { rotate: 0, duration: 1.15, ease: "power3.inOut" },
-            "-=0.3",
+            { rotate: 0, duration: 1.6, ease: "power3.inOut" },
+            "-=0.4",
           )
-          .addLabel("name", "-=0.42")
+          .addLabel("name", "-=0.5")
           // the name comes out from behind the mark
-          .to(lockup.current, { x: -shift, duration: 1 }, "name")
+          .to(lockup.current, { x: -shift, duration: 1.3 }, "name")
           .set(wordWrap.current, { autoAlpha: 1 }, "name")
-          .to(word.current, { xPercent: 0, duration: 1 }, "name")
+          .to(word.current, { xPercent: 0, duration: 1.3 }, "name")
           // and the shop is underneath
           .to(
             lockup.current,
-            { autoAlpha: 0, y: -14, duration: 0.55, ease: "power2.in" },
-            "+=0.8",
+            { autoAlpha: 0, y: -16, duration: 0.65, ease: "power2.in" },
+            "+=0.5",
           )
-          .to(rule.current, { scaleX: 1, duration: 0.5, ease: "power2.inOut" }, "<")
-          .to(panel.current, {
-            yPercent: -100,
-            duration: 0.85,
-            ease: "power4.inOut",
-          });
+          .to(rule.current, { scaleX: 1, duration: 0.55, ease: "power2.inOut" }, "<")
+          .to(
+            panel.current,
+            { yPercent: -100, duration: 0.95, ease: "power4.inOut" },
+            "-=0.3",
+          );
       }
 
-      // Start once the mark is actually decoded, so it never fades in as an
+      // Start once the art is actually decoded, so nothing fades in as an
       // empty box. The delayed call is the floor: a slow image must not hold
       // the shop hostage.
       const start = () => tl.play();
-      Promise.resolve(moon.current?.decode()).catch(() => {}).then(start);
+      Promise.allSettled([
+        moon.current?.decode() ?? Promise.resolve(),
+        word.current?.decode() ?? Promise.resolve(),
+      ]).then(start);
       gsap.delayedCall(1, start);
 
       // Two seconds is a gift, not a toll: any input hurries it along.
@@ -174,21 +175,27 @@ export function BrandLoader() {
             className="h-auto w-[104px] will-change-transform sm:w-[132px] lg:w-[152px]"
           />
 
-          {/* The name is set as type, not as artwork: it takes the panel's
-              colour with it, it stays sharp at any size, and it is the same
-              wordmark the header and the footer already draw.
+          {/* The logotype itself, repainted white by scripts/brand-assets.ts.
+              It stays artwork rather than becoming type because the name is
+              drawn in a high-contrast serif, and no weight of the house's text
+              face would set it the same way.
               `w-max` because the clip box sits past the right edge of its
               containing block, where a shrink-to-fit box collapses to nothing. */}
           <div
             ref={wordWrap}
             className="invisible absolute top-1/2 left-[calc(100%+20px)] w-max -translate-y-1/2 overflow-hidden sm:left-[calc(100%+26px)] lg:left-[calc(100%+32px)]"
           >
-            <span
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               ref={word}
-              className="-mr-[0.3em] block text-[19px] leading-none tracking-[0.3em] text-ink-50 uppercase will-change-transform sm:text-[24px] lg:text-[28px]"
-            >
-              {BRAND.name}
-            </span>
+              src="/brand/wordmark.webp"
+              alt=""
+              width={1200}
+              height={112}
+              fetchPriority="high"
+              decoding="sync"
+              className="block h-auto w-[176px] max-w-none will-change-transform sm:w-[224px] lg:w-[262px]"
+            />
           </div>
         </div>
 

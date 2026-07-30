@@ -98,9 +98,10 @@
   --color-info-900: #2d3d49;
   --color-info-950: #19232c;
 
-  /* Helvetica for Latin, Noto Sans Georgian for ქართული. */
+  /* The house cut carries both scripts; the rest of the stack is fallback. */
   --font-sans:
-    "Helvetica Neue", Helvetica, var(--font-noto-georgian), Arial, sans-serif;
+    var(--font-brand), "Helvetica Neue", Helvetica, var(--font-noto-georgian),
+    Arial, sans-serif;
   --font-display: var(--font-sans);
   --font-mono: var(--font-plex-mono), Menlo, monospace;
 
