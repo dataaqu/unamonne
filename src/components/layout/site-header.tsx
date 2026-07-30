@@ -131,9 +131,13 @@ export async function SiteHeader({
           </Link>
         </nav>
 
-        {/* The name stays cocoa even where the rest of the header inverts:
-            the logotype is the one thing on the page that is never restyled. */}
-        <BrandMark size={light ? "md" : "sm"} animate />
+        {/* The name takes the header with it: white where the header inverts
+            over the campaign image, cocoa on the cream bar. */}
+        <BrandMark
+          size={light ? "md" : "sm"}
+          tone={light ? "light" : "dark"}
+          animate
+        />
 
         <div
           className={cn(
