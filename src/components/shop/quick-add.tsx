@@ -24,7 +24,7 @@ export function QuickAdd({ productId }: { productId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="h-11 w-full translate-y-full bg-ink-900 text-[11px] uppercase tracking-[0.18em] text-ink-50 transition-transform delay-75 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 focus-visible:translate-y-0 focus-visible:outline-none disabled:opacity-80 motion-reduce:transition-none"
+        className="h-11 w-full translate-y-full bg-ink-900 text-[11px] uppercase tracking-[0.18em] text-ink-50 transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-y-0 group-hover:delay-100 group-hover:duration-[850ms] group-hover:ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:translate-y-0 focus-visible:outline-none disabled:opacity-80 motion-reduce:transition-none"
       >
         {pending
           ? t("adding")
