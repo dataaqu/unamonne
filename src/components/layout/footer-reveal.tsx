@@ -8,18 +8,16 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 /**
- * How far the sheet tips as it clears the footer.
+ * How much further than the scroll the sheet travels as it clears the footer,
+ * as a fraction of the footer's height.
  *
- * A turn about its own bottom-left corner, and nothing else. That corner is a
- * nail through the sheet and the right side is what lifts, so the only thing
- * that moves is what the turn moves.
- *
- * There is deliberately no scaling here. Growing the sheet as it turns carries
- * every point sideways in proportion to its distance from the nail, which is
- * read as the whole page sliding under the cursor — the one thing this
- * movement must not do.
+ * The sheet lifts straight up: both edges leave together, at the same moment,
+ * by the same amount. It moves a little faster than the page under it, which
+ * is the whole of the effect — the sheet is sliding off the card rather than
+ * being scrolled past. Nothing turns and nothing scales, so nothing on the
+ * page shifts sideways or changes size while it goes.
  */
-const TILT = -5.3;
+const LIFT = 0.3;
 
 /**
  * The footer waits underneath the page rather than after it.
@@ -94,8 +92,7 @@ export function FooterReveal({
               return;
             }
             gsap.set(pageEl, {
-              rotate: TILT * self.progress,
-              transformOrigin: "0% 100%",
+              y: -LIFT * barEl.offsetHeight * self.progress,
               willChange: "transform",
               force3D: true,
             });
