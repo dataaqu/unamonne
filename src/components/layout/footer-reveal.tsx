@@ -8,20 +8,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 /**
- * How far the sheet tips as it clears the footer, and how much it grows doing it.
+ * How far the sheet tips as it clears the footer.
  *
- * It turns about its own bottom-left corner: that corner is a nail through the
- * sheet, the right side is what lifts. The pivot is a constant in the sheet's
- * own coordinates — computing it against the screen each frame would move the
- * point everything is measured from, and the page would twitch under the
- * scroll instead of gliding.
+ * A turn about its own bottom-left corner, and nothing else. That corner is a
+ * nail through the sheet and the right side is what lifts, so the only thing
+ * that moves is what the turn moves.
  *
- * Growing as it turns is both practical and what the movement means: a turn
- * about the left edge swings the right side inward, and the sheet is lifting
- * off the card, so it comes nearer.
+ * There is deliberately no scaling here. Growing the sheet as it turns carries
+ * every point sideways in proportion to its distance from the nail, which is
+ * read as the whole page sliding under the cursor — the one thing this
+ * movement must not do.
  */
-const TILT = -4;
-const GROW = 0.09;
+const TILT = -5.3;
 
 /**
  * The footer waits underneath the page rather than after it.
@@ -50,11 +48,16 @@ export function FooterReveal({
 }) {
   const page = useRef<HTMLDivElement>(null);
   const dock = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       const pageEl = page.current!;
       const dockEl = dock.current!;
+      // The footer's own height. The dock around it becomes a full-screen
+      // field once the reveal is on, so measuring the dock would measure the
+      // viewport — and flip the effect off and on for ever.
+      const barEl = bar.current!;
       const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       let trigger: ScrollTrigger | null = null;
@@ -62,7 +65,7 @@ export function FooterReveal({
       const clear = () => gsap.set(pageEl, { clearProps: "transform,willChange" });
 
       const measure = () => {
-        const height = dockEl.offsetHeight;
+        const height = barEl.offsetHeight;
         // Room to scroll past the page, and only if the footer can be seen whole.
         const fits = height > 0 && height <= window.innerHeight * 0.8;
 
@@ -80,7 +83,7 @@ export function FooterReveal({
           // From the moment the page's last line reaches the bottom of the
           // screen until it has travelled the footer's own height.
           start: "bottom bottom",
-          end: () => `+=${dockEl.offsetHeight}`,
+          end: () => `+=${barEl.offsetHeight}`,
           invalidateOnRefresh: true,
           // Created before the page's own triggers but last in page order, so
           // it is told to refresh last and cannot shift them.
@@ -92,7 +95,6 @@ export function FooterReveal({
             }
             gsap.set(pageEl, {
               rotate: TILT * self.progress,
-              scale: 1 + GROW * self.progress,
               transformOrigin: "0% 100%",
               willChange: "transform",
               force3D: true,
@@ -104,7 +106,7 @@ export function FooterReveal({
       measure();
 
       const observer = new ResizeObserver(measure);
-      observer.observe(dockEl);
+      observer.observe(barEl);
       window.addEventListener("resize", measure);
 
       return () => {
@@ -122,7 +124,9 @@ export function FooterReveal({
         {children}
       </div>
       <div ref={dock} data-footer-dock>
-        {footer}
+        <div ref={bar} className="w-full">
+          {footer}
+        </div>
       </div>
     </>
   );

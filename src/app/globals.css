@@ -275,11 +275,16 @@ html[data-loader="done"] [data-brand-loader] {
   background-color: var(--color-ink-100);
 }
 
+/* The whole screen, not just the footer's own height: turning the sheet lifts
+   a corner of it away from the top of the screen too, and everything behind it
+   has to be the one surface the page is lying on. */
 [data-footer-dock][data-reveal="on"] {
   position: fixed;
-  inset-inline: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--color-ink-900);
 }
 
 @utility scrollbar-none {
